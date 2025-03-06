@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { IoMdCloseCircleOutline } from "react-icons/io";
+import { IoMdCloseCircleOutline, IoMdSearch } from "react-icons/io";
 
 const WomenPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -8,6 +8,8 @@ const WomenPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const itemsPerPage = 4;
 
   const sampleProducts = [
@@ -106,13 +108,19 @@ const WomenPage = () => {
     39: { length: "24 cm", width: "8.8 cm" },
   };
 
+  // Lọc sản phẩm theo từ khóa tìm kiếm
+  const filteredProducts = sampleProducts.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Logic phân trang
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = sampleProducts.slice(
+  const currentProducts = filteredProducts.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
-  const totalPages = Math.ceil(sampleProducts.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   const nextPage = () => {
@@ -124,56 +132,91 @@ const WomenPage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Giày nữ</h1>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {currentProducts.map((product) => (
-          <div
-            key={product.id}
-            className="border p-2 rounded-lg cursor-pointer hover:shadow-lg"
-            onClick={() => openPopup(product)}
-          >
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-40 object-cover rounded"
-            />
-            <h2 className="text-lg font-semibold mt-2">{product.name}</h2>
-            <p className="text-red-500 font-bold">{product.price}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-4 flex justify-center items-center space-x-2">
-        <button
-          onClick={prevPage}
-          className="px-4 py-2 bg-gray-300 rounded disabled:bg-gray-200"
-          disabled={currentPage === 1}
-        >
-          Previous
-        </button>
-        {Array.from({ length: totalPages }, (_, i) => (
+      {/* Header với tiêu đề và ô tìm kiếm */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-4 sm:space-y-0">
+        <h1 className="text-2xl font-bold">Giày nữ</h1>
+        <div className="flex items-center space-x-2">
           <button
-            key={i + 1}
-            onClick={() => paginate(i + 1)}
-            className={`px-4 py-2 ${
-              currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-300"
-            } rounded`}
+            onClick={() => setIsSearchVisible(!isSearchVisible)}
+            className="text-gray-500 hover:text-gray-700 focus:outline-none"
           >
-            {i + 1}
+            <IoMdSearch size={24} />
           </button>
-        ))}
-        <button
-          onClick={nextPage}
-          className="px-4 py-2 bg-gray-300 rounded disabled:bg-gray-200"
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </button>
-        <span>
-          Trang {currentPage} / {totalPages}
-        </span>
+          {isSearchVisible && (
+            <input
+              type="text"
+              placeholder="Tìm giày..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48 transition-all duration-300"
+            />
+          )}
+        </div>
       </div>
 
+      {/* Danh sách sản phẩm */}
+      {filteredProducts.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {currentProducts.map((product) => (
+            <div
+              key={product.id}
+              className="border p-2 rounded-lg cursor-pointer hover:shadow-lg"
+              onClick={() => openPopup(product)}
+            >
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-40 object-cover rounded"
+              />
+              <h2 className="text-lg font-semibold mt-2">{product.name}</h2>
+              <p className="text-red-500 font-bold">{product.price}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-center text-gray-500">
+          Không tìm thấy sản phẩm nào.
+        </p>
+      )}
+
+      {/* Phân trang */}
+      {filteredProducts.length > 0 && (
+        <div className="mt-4 flex justify-center items-center space-x-2">
+          <button
+            onClick={prevPage}
+            className="px-4 py-2 bg-gray-300 rounded disabled:bg-gray-200"
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => paginate(i + 1)}
+              className={`px-4 py-2 ${
+                currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-300"
+              } rounded`}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            onClick={nextPage}
+            className="px-4 py-2 bg-gray-300 rounded disabled:bg-gray-200"
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+          <span>
+            Trang {currentPage} / {totalPages}
+          </span>
+        </div>
+      )}
+
+      {/* Popup sản phẩm */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative max-h-[80vh] overflow-y-auto">
@@ -291,6 +334,7 @@ const WomenPage = () => {
         </div>
       )}
 
+      {/* Popup bảng số đo */}
       {showSizeChart && selectedProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-80 relative max-h-[80vh] overflow-y-auto">
