@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { IoMdCloseCircleOutline, IoMdSearch } from "react-icons/io";
+import { useCart } from "../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 const WomenPage = () => {
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
@@ -14,69 +18,76 @@ const WomenPage = () => {
 
   const sampleProducts = [
     {
-      id: "001",
-      name: "Giày Sneaker Nữ",
+      id: "01",
+      name: "Giày lecos",
       price: "1.200.000đ",
       image:
-        "https://timan.vn/upload/products/082024/giay-the-thao-nu-tmsz124-cao-cap.jpg",
-      colors: ["Trắng", "Hồng"],
-      sizes: [35, 36, 37, 38, 39],
+        "https://bizweb.dktcdn.net/100/527/490/products/giay-nam-cao-cap-da-that-lecos-lg8-2-1731770099469.jpg?v=1731771540970",
+      colors: ["Đỏ", "Trắng"],
+      sizes: [10, 10.5, 8, 9, 5.5, 6, 6.5, 7, 7.5, 8.5, 9.5],
       description:
-        "Giày sneaker nữ thời trang, phong cách năng động, phù hợp cho cả đi chơi và đi học. Chất liệu thoáng khí, đế êm nhẹ.",
+        "Giày da cao cấp Lecos, thiết kế sang trọng, phù hợp với các dịp quan trọng. Chất liệu da thật, độ bền cao và thoải mái khi sử dụng. Sản phẩm được gia công tỉ mỉ, mang lại cảm giác sang trọng và đẳng cấp cho người dùng.",
     },
     {
-      id: "002",
-      name: "Giày Cao Gót",
-      price: "900.000đ",
+      id: "02",
+      name: "Giày sneaker",
+      price: "950.000đ",
       image:
-        "https://mediaelly.sgp1.digitaloceanspaces.com/uploads/2022/12/10225609/giay-nu-cao-cap-da-that-elly-egt196-3-2.jpg",
-      colors: ["Đen", "Be"],
-      sizes: [35, 36, 37, 38, 39],
+        "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lyx1zah6468x27",
+      colors: ["Xanh", "Đen"],
+      sizes: [40, 41, 42, 43],
       description:
-        "Giày cao gót thanh lịch, phù hợp với các sự kiện quan trọng hoặc đi làm. Đế cao vừa phải, tạo cảm giác thoải mái.",
+        "Sneaker phong cách trẻ trung, nhẹ nhàng, lý tưởng cho đi học và dạo phố. Đệm êm ái, hỗ trợ vận động tốt. Thiết kế hiện đại với chất liệu cao cấp, phù hợp cho mọi lứa tuổi.",
     },
     {
-      id: "003",
-      name: "Giày Sandal Nữ",
-      price: "700.000đ",
-      image:
-        "https://streetstyleshop.vn/wp-content/uploads/2022/05/giay-the-thao-nu-don-gian-6.jpg",
-      colors: ["Trắng", "Xanh"],
-      sizes: [35, 36, 37, 38, 39],
-      description:
-        "Sandal nữ đơn giản, thoáng mát, thích hợp cho mùa hè. Thiết kế tối giản nhưng vẫn thời trang.",
-    },
-    {
-      id: "004",
-      name: "Giày Boot Nữ",
+      id: "03",
+      name: "Giày thể thao cao cấp",
       price: "1.500.000đ",
-      image:
-        "https://giaybootnu.com/upload/images/giay-boot-nu-phong-cach-au-my-sanh-dieu-gbn165.jpg",
-      colors: ["Đen", "Nâu"],
-      sizes: [35, 36, 37, 38, 39],
+      image: "https://example.com/giay-the-thao-cao-cap.jpg",
+      colors: ["Đen", "Xám", "Trắng"],
+      sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5],
       description:
-        "Boot nữ phong cách Âu Mỹ, sang trọng và cá tính. Phù hợp với thời tiết se lạnh và các outfit mùa đông.",
+        "Giày thể thao cao cấp với công nghệ chống trơn trượt, phù hợp cho tập luyện chuyên sâu. Thiết kế hiện đại, thoáng khí, hỗ trợ tối đa cho các vận động viên.",
     },
     {
-      id: "005",
-      name: "Giày Thể Thao Nữ",
+      id: "04",
+      name: "Giày da nam sang trọng",
+      price: "1.800.000đ",
+      image: "https://example.com/giay-da-nam-sang-trong.jpg",
+      colors: ["Nâu", "Đen", "Xám"],
+      sizes: [6, 6.5, 7, 7.5, 8, 8.5, 9],
+      description:
+        "Giày da nam cao cấp, phong cách lịch lãm, phù hợp với công việc và sự kiện trang trọng. Chất liệu da bò tự nhiên, gia công thủ công, mang lại độ bền cao.",
+    },
+    {
+      id: "05",
+      name: "Giày chạy bộ chuyên nghiệp",
+      price: "1.300.000đ",
+      image: "https://example.com/giay-chay-bo-chuyen-nghiep.jpg",
+      colors: ["Xanh", "Đỏ", "Trắng"],
+      sizes: [5.5, 6, 6.5, 7, 7.5, 8, 8.5],
+      description:
+        "Giày chạy bộ chuyên nghiệp, hỗ trợ giảm chấn, tăng hiệu suất vận động. Thiết kế tối ưu cho người yêu thể thao, phù hợp cho chạy đường dài.",
+    },
+    {
+      id: "06",
+      name: "Giày thời trang phong cách",
+      price: "1.100.000đ",
+      image: "https://example.com/giay-thoi-trang-phong-cach.jpg",
+      colors: ["Đen", "Trắng", "Xanh"],
+      sizes: [8, 8.5, 9, 9.5, 10, 10.5],
+      description:
+        "Giày thời trang với thiết kế độc đáo, phù hợp cho các buổi hẹn hò hoặc dạo chơi. Chất liệu cao cấp, bền đẹp, phong cách cá tính.",
+    },
+    {
+      id: "07",
+      name: "Giày thể thao năng động",
       price: "1.000.000đ",
-      image:
-        "https://salt.tikicdn.com/cache/w1200/ts/product/be/69/c7/479390fd3b130863198608cf280589fc.jpg",
-      colors: ["Xám", "Hồng"],
-      sizes: [35, 36, 37, 38, 39],
+      image: "https://example.com/giay-the-thao-nang-dong.jpg",
+      colors: ["Đỏ", "Xám", "Đen"],
+      sizes: [6.5, 7, 7.5, 8, 8.5, 9, 9.5],
       description:
-        "Giày thể thao nữ cao cấp, hỗ trợ vận động tốt, đế chống trơn trượt. Thích hợp cho gym và chạy bộ.",
-    },
-    {
-      id: "006",
-      name: "Giày Cao Gót",
-      price: "800.000đ",
-      image: "https://thatlungnam.com.vn/wp-content/uploads/2019/03/1-27.jpg",
-      colors: ["Đỏ", "Đen"],
-      sizes: [35, 36, 37, 38, 39],
-      description:
-        "Giày cao gót quyến rũ, phù hợp cho các buổi tiệc tối. Chất liệu da cao cấp, đế chắc chắn.",
+        "Giày thể thao năng động, nhẹ nhàng, hỗ trợ tối đa cho các hoạt động ngoài trời. Thiết kế hiện đại, trẻ trung, phù hợp cho phong cách năng động.",
     },
   ];
 
@@ -87,19 +98,6 @@ const WomenPage = () => {
     setQuantity(1);
   };
 
-  const addToCart = () => {
-    if (selectedProduct.sizes && !selectedSize) {
-      alert("Vui lòng chọn size trước khi thêm vào giỏ hàng!");
-      return;
-    }
-    console.log(
-      `Thêm ${quantity} sản phẩm "${selectedProduct.name}" ${
-        selectedColor ? `(Màu: ${selectedColor})` : ""
-      } ${selectedSize ? `(Size: ${selectedSize})` : ""} vào giỏ hàng!`
-    );
-    setSelectedProduct(null);
-  };
-
   const sizeChart = {
     35: { length: "22 cm", width: "8 cm" },
     36: { length: "22.5 cm", width: "8.2 cm" },
@@ -108,12 +106,10 @@ const WomenPage = () => {
     39: { length: "24 cm", width: "8.8 cm" },
   };
 
-  // Lọc sản phẩm theo từ khóa tìm kiếm
   const filteredProducts = sampleProducts.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Logic phân trang
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = filteredProducts.slice(
@@ -130,9 +126,18 @@ const WomenPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
+  const handleAddToCart = () => {
+    if (selectedProduct.sizes && !selectedSize) {
+      alert("Vui lòng chọn size trước khi thêm vào giỏ hàng!");
+      return;
+    }
+    addToCart(selectedProduct, selectedColor, selectedSize, quantity);
+    setSelectedProduct(null);
+    navigate("/cart");
+  };
+
   return (
     <div className="container mx-auto p-4">
-      {/* Header với tiêu đề và ô tìm kiếm */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-4 sm:space-y-0">
         <h1 className="text-2xl font-bold">Giày nữ</h1>
         <div className="flex items-center space-x-2">
@@ -151,13 +156,12 @@ const WomenPage = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48 transition-all duration-300"
+              className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48"
             />
           )}
         </div>
       </div>
 
-      {/* Danh sách sản phẩm */}
       {filteredProducts.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {currentProducts.map((product) => (
@@ -182,7 +186,6 @@ const WomenPage = () => {
         </p>
       )}
 
-      {/* Phân trang */}
       {filteredProducts.length > 0 && (
         <div className="mt-4 flex justify-center items-center space-x-2">
           <button
@@ -210,13 +213,9 @@ const WomenPage = () => {
           >
             Next
           </button>
-          <span>
-            Trang {currentPage} / {totalPages}
-          </span>
         </div>
       )}
 
-      {/* Popup sản phẩm */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative max-h-[80vh] overflow-y-auto">
@@ -233,11 +232,7 @@ const WomenPage = () => {
             />
             <h2 className="text-xl font-bold mt-2">{selectedProduct.name}</h2>
             <p className="text-red-500 font-bold">{selectedProduct.price}</p>
-
-            <div className="mt-2">
-              <p className="font-semibold">Giới thiệu:</p>
-              <p className="text-gray-600">{selectedProduct.description}</p>
-            </div>
+            <p className="mt-2 text-gray-600">{selectedProduct.description}</p>
 
             {selectedProduct.colors && (
               <div className="mt-2">
@@ -247,31 +242,17 @@ const WomenPage = () => {
                     <button
                       key={color}
                       className={`p-2 border rounded-full ${
-                        selectedColor === color
-                          ? "border-black bg-gray-200"
-                          : "border-gray-300"
+                        selectedColor === color ? "border-blue-500" : ""
                       }`}
                       onClick={() => setSelectedColor(color)}
                     >
                       <span
                         className={`w-4 h-4 inline-block rounded-full ${
-                          color === "Đỏ"
-                            ? "bg-red-500"
-                            : color === "Trắng"
+                          color === "Trắng"
                             ? "bg-white border"
-                            : color === "Hồng"
-                            ? "bg-pink-400"
-                            : color === "Xanh"
-                            ? "bg-blue-500"
-                            : color === "Xám"
-                            ? "bg-gray-500"
-                            : color === "Nâu"
-                            ? "bg-yellow-800"
-                            : color === "Be"
-                            ? "bg-yellow-100"
-                            : "bg-black"
+                            : `bg-${color.toLowerCase()}-500`
                         }`}
-                      ></span>
+                      />
                     </button>
                   ))}
                 </div>
@@ -294,7 +275,7 @@ const WomenPage = () => {
                     <button
                       key={size}
                       className={`p-2 border rounded ${
-                        selectedSize === size ? "border-black bg-gray-200" : ""
+                        selectedSize === size ? "bg-blue-500 text-white" : ""
                       }`}
                       onClick={() => setSelectedSize(size)}
                     >
@@ -326,7 +307,7 @@ const WomenPage = () => {
 
             <button
               className="mt-4 w-full bg-blue-500 text-white py-2 rounded"
-              onClick={addToCart}
+              onClick={handleAddToCart}
             >
               Thêm vào giỏ hàng
             </button>
@@ -334,10 +315,9 @@ const WomenPage = () => {
         </div>
       )}
 
-      {/* Popup bảng số đo */}
-      {showSizeChart && selectedProduct && (
+      {showSizeChart && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-80 relative max-h-[80vh] overflow-y-auto">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
             <button
               className="absolute top-2 right-2 text-gray-500"
               onClick={() => setShowSizeChart(false)}

@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { IoMdCloseCircleOutline, IoMdSearch } from "react-icons/io";
+import { useCart } from "../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 const ManPage = () => {
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
@@ -15,77 +19,88 @@ const ManPage = () => {
   const sampleProducts = [
     {
       id: "01",
-      name: "Giày lecos",
+      name: "Giày Lecos",
       price: "1.200.000đ",
       image:
         "https://bizweb.dktcdn.net/100/527/490/products/giay-nam-cao-cap-da-that-lecos-lg8-2-1731770099469.jpg?v=1731771540970",
       colors: ["Đỏ", "Trắng"],
-      sizes: [10, 10.5, 8, 9, 5.5, 6, 6.5, 7, 7.5, 8.5, 9.5],
+      sizes: [40, 41, 42, 43],
       description:
-        "Giày da cao cấp Lecos, thiết kế sang trọng, phù hợp với các dịp quan trọng. Chất liệu da thật, độ bền cao và thoải mái khi sử dụng. Sản phẩm được gia công tỉ mỉ, mang lại cảm giác sang trọng và đẳng cấp cho người dùng.",
+        "Giày da cao cấp Lecos, thiết kế sang trọng, phù hợp với các dịp quan trọng.",
     },
     {
       id: "02",
-      name: "Giày sneaker",
+      name: "Giày Sneaker",
       price: "950.000đ",
       image:
         "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lyx1zah6468x27",
       colors: ["Xanh", "Đen"],
       sizes: [40, 41, 42, 43],
       description:
-        "Sneaker phong cách trẻ trung, nhẹ nhàng, lý tưởng cho đi học và dạo phố. Đệm êm ái, hỗ trợ vận động tốt. Thiết kế hiện đại với chất liệu cao cấp, phù hợp cho mọi lứa tuổi.",
+        "Sneaker phong cách trẻ trung, nhẹ nhàng, lý tưởng cho đi học và dạo phố.",
     },
     {
       id: "03",
-      name: "Giày thể thao cao cấp",
+      name: "Giày Thể Thao Cao Cấp",
       price: "1.500.000đ",
-      image: "https://example.com/giay-the-thao-cao-cap.jpg",
+      image: "https://via.placeholder.com/150", // Thay URL hợp lệ nếu có
       colors: ["Đen", "Xám", "Trắng"],
-      sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5],
-      description:
-        "Giày thể thao cao cấp với công nghệ chống trơn trượt, phù hợp cho tập luyện chuyên sâu. Thiết kế hiện đại, thoáng khí, hỗ trợ tối đa cho các vận động viên.",
+      sizes: [40, 41, 42, 43],
+      description: "Giày thể thao cao cấp với công nghệ chống trơn trượt.",
     },
     {
       id: "04",
-      name: "Giày da nam sang trọng",
+      name: "Giày Da Nam Sang Trọng",
       price: "1.800.000đ",
-      image: "https://example.com/giay-da-nam-sang-trong.jpg",
+      image: "https://via.placeholder.com/150", // Thay URL hợp lệ nếu có
       colors: ["Nâu", "Đen", "Xám"],
-      sizes: [6, 6.5, 7, 7.5, 8, 8.5, 9],
-      description:
-        "Giày da nam cao cấp, phong cách lịch lãm, phù hợp với công việc và sự kiện trang trọng. Chất liệu da bò tự nhiên, gia công thủ công, mang lại độ bền cao.",
+      sizes: [40, 41, 42, 43],
+      description: "Giày da nam cao cấp, phong cách lịch lãm.",
     },
     {
       id: "05",
-      name: "Giày chạy bộ chuyên nghiệp",
-      price: "1.300.000đ",
-      image: "https://example.com/giay-chay-bo-chuyen-nghiep.jpg",
-      colors: ["Xanh", "Đỏ", "Trắng"],
-      sizes: [5.5, 6, 6.5, 7, 7.5, 8, 8.5],
-      description:
-        "Giày chạy bộ chuyên nghiệp, hỗ trợ giảm chấn, tăng hiệu suất vận động. Thiết kế tối ưu cho người yêu thể thao, phù hợp cho chạy đường dài.",
+      name: "Giày Tây Lịch Lãm",
+      price: "2.000.000đ",
+      image: "https://via.placeholder.com/150",
+      colors: ["Đen", "Nâu"],
+      sizes: [40, 41, 42, 43],
+      description: "Phong cách lịch lãm.",
     },
     {
       id: "06",
-      name: "Giày thời trang phong cách",
-      price: "1.100.000đ",
-      image: "https://example.com/giay-thoi-trang-phong-cach.jpg",
-      colors: ["Đen", "Trắng", "Xanh"],
-      sizes: [8, 8.5, 9, 9.5, 10, 10.5],
-      description:
-        "Giày thời trang với thiết kế độc đáo, phù hợp cho các buổi hẹn hò hoặc dạo chơi. Chất liệu cao cấp, bền đẹp, phong cách cá tính.",
+      name: "Giày Bốt Nam",
+      price: "2.500.000đ",
+      image: "https://via.placeholder.com/150",
+      colors: ["Đen", "Xám"],
+      sizes: [40, 41, 42, 43],
+      description: "Giày bốt nam cá tính.",
     },
     {
       id: "07",
-      name: "Giày thể thao năng động",
+      name: "Giày Chạy Bộ",
       price: "1.000.000đ",
-      image: "https://example.com/giay-the-thao-nang-dong.jpg",
-      colors: ["Đỏ", "Xám", "Đen"],
-      sizes: [6.5, 7, 7.5, 8, 8.5, 9, 9.5],
-      description:
-        "Giày thể thao năng động, nhẹ nhàng, hỗ trợ tối đa cho các hoạt động ngoài trời. Thiết kế hiện đại, trẻ trung, phù hợp cho phong cách năng động.",
+      image: "https://via.placeholder.com/150",
+      colors: ["Xanh", "Trắng"],
+      sizes: [40, 41, 42, 43],
+      description: "Giày chạy bộ nhẹ, êm ái.",
+    },
+    {
+      id: "08",
+      name: "Giày Cổ Cao",
+      price: "1.300.000đ",
+      image: "https://via.placeholder.com/150",
+      colors: ["Đen", "Đỏ"],
+      sizes: [40, 41, 42, 43],
+      description: "Giày cổ cao phong cách.",
     },
   ];
+
+  const sizeChart = {
+    40: { length: "25 cm", width: "9.4 cm" },
+    41: { length: "25.5 cm", width: "9.6 cm" },
+    42: { length: "26 cm", width: "9.8 cm" },
+    43: { length: "26.5 cm", width: "10.0 cm" },
+  };
 
   const openPopup = (product) => {
     setSelectedProduct(product);
@@ -94,39 +109,10 @@ const ManPage = () => {
     setQuantity(1);
   };
 
-  const addToCart = () => {
-    if (selectedProduct.sizes && !selectedSize) {
-      alert("Vui lòng chọn size trước khi thêm vào giỏ hàng!");
-      return;
-    }
-    console.log(
-      `Thêm ${quantity} sản phẩm "${selectedProduct.name}" ${
-        selectedColor ? `(Màu: ${selectedColor})` : ""
-      } ${selectedSize ? `(Size: ${selectedSize})` : ""} vào giỏ hàng!`
-    );
-    setSelectedProduct(null);
-  };
-
-  const sizeChart = {
-    5.5: { length: "22.5 cm", width: "8.5 cm" },
-    6: { length: "23 cm", width: "8.7 cm" },
-    6.5: { length: "23.5 cm", width: "8.9 cm" },
-    7: { length: "24 cm", width: "9.0 cm" },
-    7.5: { length: "24.5 cm", width: "9.2 cm" },
-    8: { length: "25 cm", width: "9.4 cm" },
-    8.5: { length: "25.5 cm", width: "9.6 cm" },
-    9: { length: "26 cm", width: "9.8 cm" },
-    9.5: { length: "26.5 cm", width: "10.0 cm" },
-    10: { length: "27 cm", width: "10.2 cm" },
-    10.5: { length: "27.5 cm", width: "10.4 cm" },
-  };
-
-  // Lọc sản phẩm theo từ khóa tìm kiếm
   const filteredProducts = sampleProducts.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Logic phân trang
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = filteredProducts.slice(
@@ -143,9 +129,18 @@ const ManPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
+  const handleAddToCart = () => {
+    if (selectedProduct.sizes && !selectedSize) {
+      alert("Vui lòng chọn size trước khi thêm vào giỏ hàng!");
+      return;
+    }
+    addToCart(selectedProduct, selectedColor, selectedSize, quantity);
+    setSelectedProduct(null);
+    navigate("/cart");
+  };
+
   return (
     <div className="container mx-auto p-4">
-      {/* Header với tiêu đề và ô tìm kiếm */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-4 sm:space-y-0">
         <h1 className="text-2xl font-bold">Giày nam</h1>
         <div className="flex items-center space-x-2">
@@ -162,15 +157,14 @@ const ManPage = () => {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
+                setCurrentPage(1);
               }}
-              className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48 transition-all duration-300"
+              className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48"
             />
           )}
         </div>
       </div>
 
-      {/* Danh sách sản phẩm */}
       {filteredProducts.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {currentProducts.map((product) => (
@@ -195,7 +189,6 @@ const ManPage = () => {
         </p>
       )}
 
-      {/* Phân trang */}
       {filteredProducts.length > 0 && (
         <div className="mt-4 flex justify-center items-center space-x-2">
           <button
@@ -223,13 +216,9 @@ const ManPage = () => {
           >
             Next
           </button>
-          <span>
-            Trang {currentPage} / {totalPages}
-          </span>
         </div>
       )}
 
-      {/* Popup sản phẩm */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative max-h-[80vh] overflow-y-auto">
@@ -246,11 +235,7 @@ const ManPage = () => {
             />
             <h2 className="text-xl font-bold mt-2">{selectedProduct.name}</h2>
             <p className="text-red-500 font-bold">{selectedProduct.price}</p>
-
-            <div className="mt-2">
-              <p className="font-semibold">Giới thiệu:</p>
-              <p className="text-gray-600">{selectedProduct.description}</p>
-            </div>
+            <p className="mt-2 text-gray-600">{selectedProduct.description}</p>
 
             {selectedProduct.colors && (
               <div className="mt-2">
@@ -260,27 +245,17 @@ const ManPage = () => {
                     <button
                       key={color}
                       className={`p-2 border rounded-full ${
-                        selectedColor === color
-                          ? "border-black bg-gray-200"
-                          : "border-gray-300"
+                        selectedColor === color ? "border-blue-500" : ""
                       }`}
                       onClick={() => setSelectedColor(color)}
                     >
                       <span
                         className={`w-4 h-4 inline-block rounded-full ${
-                          color === "Đỏ"
-                            ? "bg-red-500"
-                            : color === "Trắng"
+                          color === "Trắng"
                             ? "bg-white border"
-                            : color === "Xanh"
-                            ? "bg-blue-500"
-                            : color === "Xám"
-                            ? "bg-gray-500"
-                            : color === "Nâu"
-                            ? "bg-yellow-800"
-                            : "bg-black"
+                            : `bg-${color.toLowerCase()}-500`
                         }`}
-                      ></span>
+                      />
                     </button>
                   ))}
                 </div>
@@ -298,12 +273,12 @@ const ManPage = () => {
                     Bảng số đo
                   </button>
                 </div>
-                <div className="grid grid-cols-6 gap-2 mt-1">
+                <div className="grid grid-cols-5 gap-2 mt-1">
                   {selectedProduct.sizes.map((size) => (
                     <button
                       key={size}
                       className={`p-2 border rounded ${
-                        selectedSize === size ? "border-black bg-gray-200" : ""
+                        selectedSize === size ? "bg-blue-500 text-white" : ""
                       }`}
                       onClick={() => setSelectedSize(size)}
                     >
@@ -335,7 +310,7 @@ const ManPage = () => {
 
             <button
               className="mt-4 w-full bg-blue-500 text-white py-2 rounded"
-              onClick={addToCart}
+              onClick={handleAddToCart}
             >
               Thêm vào giỏ hàng
             </button>
@@ -343,10 +318,9 @@ const ManPage = () => {
         </div>
       )}
 
-      {/* Popup bảng số đo */}
-      {showSizeChart && selectedProduct && (
+      {showSizeChart && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-80 relative max-h-[80vh] overflow-y-auto">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
             <button
               className="absolute top-2 right-2 text-gray-500"
               onClick={() => setShowSizeChart(false)}
