@@ -1,7 +1,23 @@
-import React from "react";
-import { FaPhone, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
+import React, { useState } from "react";
+import {
+  FaPhone,
+  FaEnvelope,
+  FaMapMarkerAlt,
+  FaFacebook,
+  FaTwitter,
+  FaInstagram,
+} from "react-icons/fa";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault();
+    // Xử lý logic gửi email (có thể gọi API ở đây)
+    alert(`Subscribed with email: ${email}`);
+    setEmail(""); // Reset input sau khi gửi
+  };
+
   return (
     <footer className="bg-white border-t shadow-md">
       <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -33,10 +49,10 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-semibold">Pages</h3>
           <ul className="text-gray-600 mt-3 space-y-2">
-            <li>Home it work</li>
-            <li>Pricing</li>
-            <li>Blog</li>
-            <li>Demo</li>
+            <li className="hover:text-blue-500 cursor-pointer">Home it work</li>
+            <li className="hover:text-blue-500 cursor-pointer">Pricing</li>
+            <li className="hover:text-blue-500 cursor-pointer">Blog</li>
+            <li className="hover:text-blue-500 cursor-pointer">Demo</li>
           </ul>
         </div>
 
@@ -44,13 +60,13 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-semibold">Service</h3>
           <ul className="text-gray-600 mt-3 space-y-2">
-            <li>Shopify</li>
-            <li>WordPress</li>
-            <li>UI/UX Design</li>
+            <li className="hover:text-blue-500 cursor-pointer">Shopify</li>
+            <li className="hover:text-blue-500 cursor-pointer">WordPress</li>
+            <li className="hover:text-blue-500 cursor-pointer">UI/UX Design</li>
           </ul>
         </div>
 
-        {/* Contact */}
+        {/* Contact + Social Media */}
         <div>
           <h3 className="text-lg font-semibold">Contact</h3>
           <ul className="text-gray-600 mt-3 space-y-2">
@@ -67,7 +83,67 @@ const Footer = () => {
               <span>2972 Westheimer Rd. Santa Ana, Illinois 85486</span>
             </li>
           </ul>
+          {/* Social Media Links */}
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold">Follow Us</h3>
+            <div className="flex space-x-4 mt-2">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FaFacebook className="text-blue-500 hover:text-blue-700 text-2xl" />
+              </a>
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FaTwitter className="text-blue-500 hover:text-blue-700 text-2xl" />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FaInstagram className="text-blue-500 hover:text-blue-700 text-2xl" />
+              </a>
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Newsletter Signup */}
+      <div className="max-w-6xl mx-auto px-6 py-6 border-t">
+        <h3 className="text-lg font-semibold text-center">
+          Subscribe to Our Newsletter
+        </h3>
+        <form
+          onSubmit={handleNewsletterSubmit}
+          className="mt-4 flex justify-center"
+        >
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            className="w-full max-w-xs px-4 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-6 py-2 rounded-r-md hover:bg-blue-600 transition"
+          >
+            Subscribe
+          </button>
+        </form>
+      </div>
+
+      {/* Copyright */}
+      <div className="bg-gray-100 py-4 text-center text-gray-600">
+        <p>
+          &copy; {new Date().getFullYear()} mangcoding. All rights reserved.
+        </p>
       </div>
     </footer>
   );
