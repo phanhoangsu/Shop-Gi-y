@@ -1,41 +1,78 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem("cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
 
-  const addToCart = (product, color, size, quantity) => {
-    setCartItems((prev) => {
-      const existingItem = prev.find(
-        (item) =>
-          item.id === product.id && item.color === color && item.size === size
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  const addToCart = (item) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find(
+        (cartItem) =>
+          cartItem.id === item.id &&
+          cartItem.color === item.color &&
+          cartItem.size === item.size
       );
-
       if (existingItem) {
-        return prev.map((item) =>
-          item.id === product.id && item.color === color && item.size === size
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
+        return prevCart.map((cartItem) =>
+          cartItem.id === item.id &&
+          cartItem.color === item.color &&
+          cartItem.size === item.size
+            ? {
+                ...cartItem,
+                quantity: Math.min(
+                  cartItem.quantity + item.quantity,
+                  cartItem.stock
+                ),
+              }
+            : cartItem
         );
+      } else {
+        return [...prevCart, { ...item, stock: item.stock || 10 }];
       }
-
-      return [...prev, { ...product, color, size, quantity }];
     });
   };
 
-  // Hàm xóa sản phẩm khỏi giỏ hàng
-  const removeFromCart = (productId, color, size) => {
-    setCartItems((prev) =>
-      prev.filter(
+  const removeFromCart = (itemId, color, size) => {
+    setCart((prevCart) =>
+      prevCart.filter(
         (item) =>
-          !(item.id === productId && item.color === color && item.size === size)
+          !(item.id === itemId && item.color === color && item.size === size)
       )
     );
   };
 
+  const updateCartItemQuantity = (itemId, quantity, color, size) => {
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === itemId && item.color === color && item.size === size
+          ? { ...item, quantity: Math.min(Math.max(quantity, 1), item.stock) }
+          : item
+      )
+    );
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart }}>
+    <CartContext.Provider
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        updateCartItemQuantity,
+        clearCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

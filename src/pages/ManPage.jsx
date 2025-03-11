@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { FaSearch, FaPlus, FaMinus, FaTimes, FaHeart } from "react-icons/fa";
 import { Helmet } from "react-helmet";
+import { useNavigate } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 
 const colorMap = {
   đen: "#000000",
@@ -10,6 +12,8 @@ const colorMap = {
 };
 
 const ManPage = () => {
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,15 +29,13 @@ const ManPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState(null);
-  const [cart, setCart] = useState([]);
-  const [wishlist, setWishlist] = useState(
-    JSON.parse(localStorage.getItem("wishlist")) || []
-  );
   const [cartNotification, setCartNotification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hoveredProduct, setHoveredProduct] = useState(null);
+  const [wishlist, setWishlist] = useState(
+    JSON.parse(localStorage.getItem("wishlist")) || []
+  );
 
-  // Fetch dữ liệu từ API
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
@@ -53,50 +55,36 @@ const ManPage = () => {
     fetchProducts();
   }, []);
 
-  // Áp dụng bộ lọc và tìm kiếm
   useEffect(() => {
     let filtered = [...products];
-
-    // Tìm kiếm
     filtered = filtered.filter((product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    // Lọc theo giá
     filtered = filtered.filter(
       (product) =>
         product.price >= priceRange[0] && product.price <= priceRange[1]
     );
-
-    // Lọc theo màu sắc
     if (selectedColors.length > 0) {
       filtered = filtered.filter((product) =>
         product.colors.some((color) => selectedColors.includes(color))
       );
     }
-
-    // Lọc theo kích thước
     if (selectedSizes.length > 0) {
       filtered = filtered.filter((product) =>
         product.sizes.some((size) => selectedSizes.includes(size))
       );
     }
-
-    // Sắp xếp
     if (sortBy === "price-asc") {
       filtered.sort((a, b) => a.price - b.price);
     } else if (sortBy === "price-desc") {
       filtered.sort((a, b) => b.price - a.price);
     }
-
     setFilteredProducts(filtered);
     setCurrentPage(1);
   }, [products, searchTerm, priceRange, selectedColors, selectedSizes, sortBy]);
 
-  // Xử lý tìm kiếm
   const handleSearch = (e) => setSearchTerm(e.target.value);
 
-  // Xử lý Wishlist
   const toggleWishlist = (product) => {
     const newWishlist = wishlist.some((item) => item._id === product._id)
       ? wishlist.filter((item) => item._id !== product._id)
@@ -105,7 +93,6 @@ const ManPage = () => {
     localStorage.setItem("wishlist", JSON.stringify(newWishlist));
   };
 
-  // Mở popup chi tiết sản phẩm
   const openPopup = (product) => {
     setSelectedProduct(product);
     setQuantity(1);
@@ -113,10 +100,8 @@ const ManPage = () => {
     setSelectedSize(null);
   };
 
-  // Đóng popup
   const closePopup = () => setSelectedProduct(null);
 
-  // Xử lý thêm vào giỏ hàng
   const handleAddToCart = () => {
     if (!selectedColor || !selectedSize) {
       alert("Vui lòng chọn màu sắc và kích thước!");
@@ -135,14 +120,18 @@ const ManPage = () => {
       quantity,
       price: selectedProduct.price,
       image: selectedProduct.img,
+      stock: selectedProduct.stock,
     };
-    setCart([...cart, newItem]);
+
+    addToCart(newItem);
     setCartNotification(true);
-    setTimeout(() => setCartNotification(false), 2000);
+    setTimeout(() => {
+      setCartNotification(false);
+      navigate("/cart");
+    }, 2000);
     closePopup();
   };
 
-  // Tính toán sản phẩm hiển thị cho từng trang
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = filteredProducts.slice(
@@ -151,7 +140,6 @@ const ManPage = () => {
   );
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  // Danh sách màu sắc và kích thước duy nhất để lọc
   const uniqueColors = [...new Set(products.flatMap((p) => p.colors))];
   const uniqueSizes = [...new Set(products.flatMap((p) => p.sizes))];
 
@@ -169,7 +157,6 @@ const ManPage = () => {
         Men's Shoes
       </h2>
 
-      {/* Bộ lọc nâng cao */}
       <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
         <div className="flex flex-col gap-4">
           <div>
@@ -268,21 +255,18 @@ const ManPage = () => {
         </div>
       </div>
 
-      {/* Hiển thị số lượng trong giỏ hàng */}
-      {cart.length > 0 && (
-        <div className="fixed top-2 right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
-          {cart.length}
-        </div>
-      )}
-
-      {/* Thông báo thêm vào giỏ hàng */}
       {cartNotification && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
           Added to cart successfully!
+          <button
+            onClick={() => navigate("/cart")}
+            className="bg-white text-green-500 px-2 py-1 rounded"
+          >
+            Go to Cart
+          </button>
         </div>
       )}
 
-      {/* Hiển thị trạng thái loading */}
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
@@ -347,7 +331,6 @@ const ManPage = () => {
         <p className="text-center text-gray-500 text-lg">No products found</p>
       )}
 
-      {/* Phân trang */}
       {!isLoading && filteredProducts.length > 0 && (
         <div className="flex justify-center items-center mt-10 gap-4">
           <button
@@ -357,7 +340,7 @@ const ManPage = () => {
               currentPage === 1
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-100"
-            } transition duration-200`}
+            }`}
           >
             ← Previous
           </button>
@@ -373,14 +356,13 @@ const ManPage = () => {
               currentPage === totalPages
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-100"
-            } transition duration-200`}
+            }`}
           >
             Next →
           </button>
         </div>
       )}
 
-      {/* Quick View */}
       {quickViewProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-40">
           <div className="bg-white p-4 rounded-lg max-w-sm">
@@ -421,7 +403,6 @@ const ManPage = () => {
         </div>
       )}
 
-      {/* Popup chi tiết sản phẩm */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
           <div className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6 relative">
@@ -548,7 +529,6 @@ const ManPage = () => {
               </button>
             )}
 
-            {/* Sản phẩm liên quan */}
             <div className="mt-4">
               <h4 className="font-semibold text-gray-700">Related Products</h4>
               <div className="grid grid-cols-3 gap-2">

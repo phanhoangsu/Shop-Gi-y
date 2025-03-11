@@ -1,11 +1,11 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import CartPage from "./pages/CartPage";
-import HomePage from "./pages/HomePage"; // Giả sử bạn có file này
+import HomePage from "./pages/HomePage";
 import ListPage from "./pages/ListPage";
-import DetailPage from "./pages/DetailPage"; // Giả sử bạn có file này
-import LoginPage from "./pages/LoginPage"; // Giả sử bạn có file này
-import RegisterPage from "./pages/RegisterPage"; // Giả sử bạn có file này
+import DetailPage from "./pages/DetailPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import ManPage from "./pages/ManPage";
 import WomenPage from "./pages/WomenPage";
 import KidsPage from "./pages/KidsPage";

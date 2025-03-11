@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useCart } from "../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
-// CartItem component
 const CartItem = React.memo(
   ({ item, onQuantityChange, onRemove, formatCurrency }) => {
     return (
@@ -15,6 +16,9 @@ const CartItem = React.memo(
         <div className="flex-1">
           <h3 className="font-semibold">{item.name}</h3>
           <p className="text-gray-600">{formatCurrency(item.price)}</p>
+          <p className="text-gray-500 text-sm">
+            Màu: {item.color}, Kích thước: {item.size}
+          </p>
           <div className="flex items-center mt-2">
             <button
               onClick={() => onQuantityChange(item.id, "decrease")}
@@ -44,7 +48,7 @@ const CartItem = React.memo(
           </div>
         </div>
         <button
-          onClick={() => onRemove(item.id)}
+          onClick={() => onRemove(item.id, item.color, item.size)}
           className="text-red-500 hover:text-red-700 ml-4"
         >
           Xóa
@@ -54,32 +58,9 @@ const CartItem = React.memo(
   }
 );
 
-// CartPage component
 const CartPage = () => {
-  // State
-  const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("cart");
-    return savedCart
-      ? JSON.parse(savedCart)
-      : [
-          {
-            id: 1,
-            name: "Sản phẩm 1",
-            quantity: 1,
-            price: 10,
-            stock: 10,
-            image: "https://via.placeholder.com/80",
-          },
-          {
-            id: 2,
-            name: "Sản phẩm 2",
-            quantity: 2,
-            price: 20,
-            stock: 5,
-            image: "https://via.placeholder.com/80",
-          },
-        ];
-  });
+  const { cart, updateCartItemQuantity, removeFromCart, clearCart } = useCart();
+  const navigate = useNavigate();
   const [discountCode, setDiscountCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [showShipping, setShowShipping] = useState(false);
@@ -105,13 +86,8 @@ const CartPage = () => {
     const savedPoints = localStorage.getItem("loyaltyPoints");
     return savedPoints ? parseInt(savedPoints) : 0;
   });
-  const [favorites, setFavorites] = useState(() => {
-    const savedFavorites = localStorage.getItem("favorites");
-    return savedFavorites ? JSON.parse(savedFavorites) : [];
-  });
-  const [language, setLanguage] = useState("vi"); // Ngôn ngữ tiếng Việt
+  const [language] = useState("vi");
 
-  // Translations (chỉ cần tiếng Việt vì yêu cầu giữ tiếng Việt)
   const translations = {
     vi: {
       cart: "Giỏ hàng",
@@ -138,7 +114,6 @@ const CartPage = () => {
       error: "Lỗi",
       removeConfirm: "Bạn có chắc muốn xóa sản phẩm này?",
       outOfStock: "Số lượng vượt quá tồn kho!",
-      addToFavorites: "Thêm vào danh sách yêu thích",
       noCartItems: "Giỏ hàng của bạn đang trống.",
       loyaltyPoints: "Điểm thưởng",
       paymentSuccess: "Thanh toán thành công!",
@@ -148,24 +123,23 @@ const CartPage = () => {
       processing: "Đang xử lý...",
       noOrders: "Chưa có đơn hàng.",
       orderLabel: "Đơn hàng #",
+      continueShopping: "Tiếp tục mua sắm",
     },
   };
 
-  // Format currency in USD
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(amount);
 
-  // Calculate totals
   const calculateSubtotal = useMemo(() => {
     return cart.reduce((total, item) => total + item.quantity * item.price, 0);
   }, [cart]);
 
   const calculateShippingFee = useMemo(() => {
-    if (!showShipping || !shippingInfo.address) return 5; // 5 USD mặc định
-    return shippingInfo.address.includes("Hà Nội") ? 3 : 7; // Giả lập
+    if (!showShipping || !shippingInfo.address) return 5;
+    return shippingInfo.address.includes("Hà Nội") ? 3 : 7;
   }, [showShipping, shippingInfo.address]);
 
   const calculateTotal = useMemo(() => {
@@ -176,43 +150,40 @@ const CartPage = () => {
     );
   }, [calculateSubtotal, discount, showShipping, calculateShippingFee]);
 
-  // Handlers
   const handleQuantityChange = useCallback(
     (id, action, event) => {
-      setCart((prevCart) =>
-        prevCart.map((item) => {
-          if (item.id === id) {
-            if (action === "increase" && item.quantity < item.stock) {
-              return { ...item, quantity: item.quantity + 1 };
-            } else if (action === "decrease" && item.quantity > 1) {
-              return { ...item, quantity: item.quantity - 1 };
-            } else if (action === "manual") {
-              const newQuantity = parseInt(event.target.value) || 1;
-              if (newQuantity > item.stock) {
-                toast.error(translations[language].outOfStock);
-                return item;
-              }
-              return {
-                ...item,
-                quantity: Math.min(Math.max(newQuantity, 1), item.stock),
-              };
-            }
-          }
-          return item;
-        })
-      );
+      const item = cart.find((item) => item.id === id);
+      if (!item) return;
+
+      if (action === "increase" && item.quantity < item.stock) {
+        updateCartItemQuantity(id, item.quantity + 1, item.color, item.size);
+      } else if (action === "decrease" && item.quantity > 1) {
+        updateCartItemQuantity(id, item.quantity - 1, item.color, item.size);
+      } else if (action === "manual") {
+        const newQuantity = parseInt(event.target.value) || 1;
+        if (newQuantity > item.stock) {
+          toast.error(translations[language].outOfStock);
+          return;
+        }
+        updateCartItemQuantity(
+          id,
+          Math.min(Math.max(newQuantity, 1), item.stock),
+          item.color,
+          item.size
+        );
+      }
     },
-    [language]
+    [cart, updateCartItemQuantity, language]
   );
 
   const handleRemoveItem = useCallback(
-    (id) => {
+    (id, color, size) => {
       if (window.confirm(translations[language].removeConfirm)) {
-        setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+        removeFromCart(id, color, size);
         toast.success(translations[language].success);
       }
     },
-    [language]
+    [removeFromCart, language]
   );
 
   const applyDiscount = useCallback(() => {
@@ -234,15 +205,28 @@ const CartPage = () => {
   };
 
   const validateInput = () => {
-    if (!billingInfo.name || !billingInfo.email || !billingInfo.phone) {
-      toast.error(translations[language].billingError);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\d{9,11}$/;
+
+    if (!billingInfo.name.trim()) {
+      toast.error("Vui lòng nhập họ và tên!");
+      return false;
+    }
+    if (!emailRegex.test(billingInfo.email)) {
+      toast.error("Vui lòng nhập email hợp lệ!");
+      return false;
+    }
+    if (!phoneRegex.test(billingInfo.phone)) {
+      toast.error("Vui lòng nhập số điện thoại hợp lệ (9-11 chữ số)!");
       return false;
     }
     if (
       showShipping &&
-      (!shippingInfo.name || !shippingInfo.address || !shippingInfo.phone)
+      (!shippingInfo.name.trim() ||
+        !shippingInfo.address.trim() ||
+        !phoneRegex.test(shippingInfo.phone))
     ) {
-      toast.error(translations[language].shippingError);
+      toast.error("Vui lòng điền đầy đủ và hợp lệ thông tin giao hàng!");
       return false;
     }
     return true;
@@ -267,58 +251,46 @@ const CartPage = () => {
       };
       console.log("Payment Data:", paymentData);
 
-      // Giả lập API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (Math.random() > 0.8) reject(new Error("Mô phỏng lỗi thanh toán"));
+          else resolve();
+        }, 2000);
+      });
 
-      // Cập nhật tồn kho và lịch sử
-      setCart((prevCart) =>
-        prevCart.map((item) => ({ ...item, stock: item.stock - item.quantity }))
-      );
-      const newOrder = {
-        id: Date.now(),
-        ...paymentData,
-        date: new Date().toISOString(),
-      };
-      setOrderHistory((prev) => [...prev, newOrder]);
-      setLoyaltyPoints((prev) => prev + Math.floor(calculateTotal / 10)); // 1 điểm cho 10 USD
-      setCart([]);
+      setOrderHistory((prev) => [
+        ...prev,
+        { id: Date.now(), ...paymentData, date: new Date().toISOString() },
+      ]);
+      setLoyaltyPoints((prev) => prev + Math.floor(calculateTotal / 10));
+      clearCart();
       setDiscount(0);
       setDiscountCode("");
       setNotes("");
       toast.success(translations[language].paymentSuccess);
+      setTimeout(() => navigate("/"), 2000); // Chuyển về trang chủ sau khi thanh toán thành công
     } catch (error) {
-      toast.error(translations[language].paymentError);
+      console.error("Payment Error:", error.message);
+      toast.error(`Có lỗi xảy ra: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Save to localStorage
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
     localStorage.setItem("orderHistory", JSON.stringify(orderHistory));
     localStorage.setItem("loyaltyPoints", loyaltyPoints);
-    localStorage.setItem("favorites", JSON.stringify(favorites));
-  }, [cart, orderHistory, loyaltyPoints, favorites]);
-
-  // Add to favorites
-  const addToFavorites = (item) => {
-    if (!favorites.find((fav) => fav.id === item.id)) {
-      setFavorites([...favorites, item]);
-      toast.success("Đã thêm vào danh sách yêu thích!");
-    }
-  };
+  }, [orderHistory, loyaltyPoints]);
 
   return (
     <div className="container mx-auto p-4 md:p-8">
       <ToastContainer />
       {isLoading && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-          <img src="/loading.gif" alt="Loading..." className="w-16 h-16" />
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Giỏ hàng */}
         <div className="md:col-span-2 bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-semibold mb-4">
             {translations[language].cart}
@@ -328,23 +300,15 @@ const CartPage = () => {
               {translations[language].noCartItems}
             </p>
           ) : (
-            <>
-              {cart.map((item) => (
-                <CartItem
-                  key={item.id}
-                  item={item}
-                  onQuantityChange={handleQuantityChange}
-                  onRemove={handleRemoveItem}
-                  formatCurrency={formatCurrency}
-                />
-              ))}
-              <button
-                onClick={() => addToFavorites(cart[0])}
-                className="mt-4 bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded"
-              >
-                {translations[language].addToFavorites}
-              </button>
-            </>
+            cart.map((item) => (
+              <CartItem
+                key={`${item.id}-${item.color}-${item.size}`}
+                item={item}
+                onQuantityChange={handleQuantityChange}
+                onRemove={handleRemoveItem}
+                formatCurrency={formatCurrency}
+              />
+            ))
           )}
           <div className="mt-4">
             <div className="flex justify-between">
@@ -373,13 +337,11 @@ const CartPage = () => {
           </div>
         </div>
 
-        {/* Thanh toán */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-semibold mb-4">
             {translations[language].payment}
           </h2>
 
-          {/* Mã giảm giá */}
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
               {translations[language].discountCode}
@@ -401,7 +363,6 @@ const CartPage = () => {
             </div>
           </div>
 
-          {/* Thông tin thanh toán */}
           <h3 className="text-lg font-semibold mb-2">
             {translations[language].billingInfo}
           </h3>
@@ -445,7 +406,6 @@ const CartPage = () => {
             />
           </div>
 
-          {/* Phương thức thanh toán */}
           <div className="mb-4">
             <h3 className="text-lg font-semibold mb-2">
               {translations[language].paymentMethod}
@@ -461,7 +421,6 @@ const CartPage = () => {
             </select>
           </div>
 
-          {/* Thông tin giao hàng */}
           <button
             className="text-blue-500 hover:underline mb-4"
             onClick={() => setShowShipping(!showShipping)}
@@ -527,7 +486,6 @@ const CartPage = () => {
             </>
           )}
 
-          {/* Ghi chú */}
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
               {translations[language].notes}
@@ -540,7 +498,6 @@ const CartPage = () => {
             />
           </div>
 
-          {/* Theo dõi đơn hàng */}
           <div className="mb-4">
             <h3 className="text-lg font-semibold mb-2">
               {translations[language].orderTracking}
@@ -561,11 +518,17 @@ const CartPage = () => {
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
             onClick={handlePayment}
-            disabled={isLoading}
+            disabled={isLoading || cart.length === 0}
           >
             {isLoading
               ? translations[language].processing
               : translations[language].payment}
+          </button>
+          <button
+            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded w-full mt-2"
+            onClick={() => navigate("/")}
+          >
+            {translations[language].continueShopping}
           </button>
         </div>
       </div>
