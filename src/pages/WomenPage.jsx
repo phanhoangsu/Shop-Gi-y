@@ -1,348 +1,313 @@
-import React, { useState } from "react";
-import { IoMdCloseCircleOutline, IoMdSearch } from "react-icons/io";
-import { useCart } from "../context/CartContext";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { FaSearch, FaPlus, FaMinus, FaTimes } from "react-icons/fa";
+
+const colorMap = {
+  đen: "#000000",
+  trắng: "#FFFFFF",
+  "xanh đen": "#00008B",
+  "vàng trắng": "#FFFFE0",
+};
 
 const WomenPage = () => {
-  const navigate = useNavigate();
-  const { addToCart } = useCart();
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedColor, setSelectedColor] = useState(null);
-  const [selectedSize, setSelectedSize] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [showSizeChart, setShowSizeChart] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const itemsPerPage = 4;
+  const [searchTerm, setSearchTerm] = useState("");
+  const productsPerPage = 8;
 
-  const sampleProducts = [
-    {
-      id: "01",
-      name: "Giày lecos",
-      price: "1.200.000đ",
-      image:
-        "https://bizweb.dktcdn.net/100/527/490/products/giay-nam-cao-cap-da-that-lecos-lg8-2-1731770099469.jpg?v=1731771540970",
-      colors: ["Đỏ", "Trắng"],
-      sizes: [10, 10.5, 8, 9, 5.5, 6, 6.5, 7, 7.5, 8.5, 9.5],
-      description:
-        "Giày da cao cấp Lecos, thiết kế sang trọng, phù hợp với các dịp quan trọng. Chất liệu da thật, độ bền cao và thoải mái khi sử dụng. Sản phẩm được gia công tỉ mỉ, mang lại cảm giác sang trọng và đẳng cấp cho người dùng.",
-    },
-    {
-      id: "02",
-      name: "Giày sneaker",
-      price: "950.000đ",
-      image:
-        "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lyx1zah6468x27",
-      colors: ["Xanh", "Đen"],
-      sizes: [40, 41, 42, 43],
-      description:
-        "Sneaker phong cách trẻ trung, nhẹ nhàng, lý tưởng cho đi học và dạo phố. Đệm êm ái, hỗ trợ vận động tốt. Thiết kế hiện đại với chất liệu cao cấp, phù hợp cho mọi lứa tuổi.",
-    },
-    {
-      id: "03",
-      name: "Giày thể thao cao cấp",
-      price: "1.500.000đ",
-      image: "https://example.com/giay-the-thao-cao-cap.jpg",
-      colors: ["Đen", "Xám", "Trắng"],
-      sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5],
-      description:
-        "Giày thể thao cao cấp với công nghệ chống trơn trượt, phù hợp cho tập luyện chuyên sâu. Thiết kế hiện đại, thoáng khí, hỗ trợ tối đa cho các vận động viên.",
-    },
-    {
-      id: "04",
-      name: "Giày da nam sang trọng",
-      price: "1.800.000đ",
-      image: "https://example.com/giay-da-nam-sang-trong.jpg",
-      colors: ["Nâu", "Đen", "Xám"],
-      sizes: [6, 6.5, 7, 7.5, 8, 8.5, 9],
-      description:
-        "Giày da nam cao cấp, phong cách lịch lãm, phù hợp với công việc và sự kiện trang trọng. Chất liệu da bò tự nhiên, gia công thủ công, mang lại độ bền cao.",
-    },
-    {
-      id: "05",
-      name: "Giày chạy bộ chuyên nghiệp",
-      price: "1.300.000đ",
-      image: "https://example.com/giay-chay-bo-chuyen-nghiep.jpg",
-      colors: ["Xanh", "Đỏ", "Trắng"],
-      sizes: [5.5, 6, 6.5, 7, 7.5, 8, 8.5],
-      description:
-        "Giày chạy bộ chuyên nghiệp, hỗ trợ giảm chấn, tăng hiệu suất vận động. Thiết kế tối ưu cho người yêu thể thao, phù hợp cho chạy đường dài.",
-    },
-    {
-      id: "06",
-      name: "Giày thời trang phong cách",
-      price: "1.100.000đ",
-      image: "https://example.com/giay-thoi-trang-phong-cach.jpg",
-      colors: ["Đen", "Trắng", "Xanh"],
-      sizes: [8, 8.5, 9, 9.5, 10, 10.5],
-      description:
-        "Giày thời trang với thiết kế độc đáo, phù hợp cho các buổi hẹn hò hoặc dạo chơi. Chất liệu cao cấp, bền đẹp, phong cách cá tính.",
-    },
-    {
-      id: "07",
-      name: "Giày thể thao năng động",
-      price: "1.000.000đ",
-      image: "https://example.com/giay-the-thao-nang-dong.jpg",
-      colors: ["Đỏ", "Xám", "Đen"],
-      sizes: [6.5, 7, 7.5, 8, 8.5, 9, 9.5],
-      description:
-        "Giày thể thao năng động, nhẹ nhàng, hỗ trợ tối đa cho các hoạt động ngoài trời. Thiết kế hiện đại, trẻ trung, phù hợp cho phong cách năng động.",
-    },
-  ];
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedSize, setSelectedSize] = useState(null);
 
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch dữ liệu từ API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(
+          "https://ngochieuwedding.io.vn/api/su/product?category=nu"
+        );
+        const data = await res.json();
+        setProducts(data.data);
+        setFilteredProducts(data.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Xử lý tìm kiếm
+  const handleSearch = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    setCurrentPage(1);
+
+    const filtered = products.filter((product) =>
+      product.name.toLowerCase().includes(term)
+    );
+    setFilteredProducts(filtered);
+  };
+
+  // Mở popup chi tiết sản phẩm
   const openPopup = (product) => {
     setSelectedProduct(product);
-    setSelectedColor(product.colors ? product.colors[0] : null);
-    setSelectedSize(product.sizes ? product.sizes[0] : null);
     setQuantity(1);
+    setSelectedColor(product.colors[0] || "");
+    setSelectedSize(null);
   };
 
-  const sizeChart = {
-    35: { length: "22 cm", width: "8 cm" },
-    36: { length: "22.5 cm", width: "8.2 cm" },
-    37: { length: "23 cm", width: "8.4 cm" },
-    38: { length: "23.5 cm", width: "8.6 cm" },
-    39: { length: "24 cm", width: "8.8 cm" },
+  // Đóng popup
+  const closePopup = () => {
+    setSelectedProduct(null);
   };
 
-  const filteredProducts = sampleProducts.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = filteredProducts.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  const nextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
-  const prevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
+  // Xử lý thêm vào giỏ hàng
   const handleAddToCart = () => {
-    if (selectedProduct.sizes && !selectedSize) {
-      alert("Vui lòng chọn size trước khi thêm vào giỏ hàng!");
+    if (!selectedColor || !selectedSize) {
+      alert("Vui lòng chọn màu sắc và kích thước!");
       return;
     }
-    addToCart(selectedProduct, selectedColor, selectedSize, quantity);
-    setSelectedProduct(null);
-    navigate("/cart");
+
+    if (quantity > selectedProduct.stock) {
+      alert("Số lượng vượt quá tồn kho!");
+      return;
+    }
+
+    const newItem = {
+      id: selectedProduct._id,
+      name: selectedProduct.name,
+      color: selectedColor,
+      size: selectedSize,
+      quantity,
+      price: selectedProduct.price,
+      image: selectedProduct.img,
+    };
+
+    console.log("Thêm vào giỏ hàng:", newItem);
+    closePopup();
   };
 
+  // Tính toán sản phẩm hiển thị cho từng trang
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-4 sm:space-y-0">
-        <h1 className="text-2xl font-bold">Giày nữ</h1>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setIsSearchVisible(!isSearchVisible)}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none"
-          >
-            <IoMdSearch size={24} />
-          </button>
-          {isSearchVisible && (
-            <input
-              type="text"
-              placeholder="Tìm giày..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48"
-            />
-          )}
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+        Women's Shoes
+      </h2>
+
+      {/* Ô tìm kiếm */}
+      <div className="mb-8 flex justify-center">
+        <div className="relative w-full max-w-lg">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearch}
+            placeholder="Search products..."
+            className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200"
+          />
+          <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
         </div>
       </div>
 
-      {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Hiển thị trạng thái loading */}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+          <span className="ml-4 text-gray-600 text-lg">
+            Loading products...
+          </span>
+        </div>
+      ) : filteredProducts.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {currentProducts.map((product) => (
             <div
-              key={product.id}
-              className="border p-2 rounded-lg cursor-pointer hover:shadow-lg"
+              key={product._id}
+              className="bg-white border border-gray-200 p-4 rounded-xl shadow-md cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               onClick={() => openPopup(product)}
             >
               <img
-                src={product.image}
+                src={product.img}
                 alt={product.name}
-                className="w-full h-40 object-cover rounded"
+                className="w-full h-56 object-cover rounded-lg mb-3"
               />
-              <h2 className="text-lg font-semibold mt-2">{product.name}</h2>
-              <p className="text-red-500 font-bold">{product.price}</p>
+              <h3 className="text-lg font-semibold text-gray-800 truncate">
+                {product.name}
+              </h3>
+              <p className="text-red-600 font-bold text-xl">
+                ${product.price.toLocaleString()}
+              </p>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-center text-gray-500">
-          Không tìm thấy sản phẩm nào.
-        </p>
+        <p className="text-center text-gray-500 text-lg">No products found</p>
       )}
 
-      {filteredProducts.length > 0 && (
-        <div className="mt-4 flex justify-center items-center space-x-2">
+      {/* PHÂN TRANG */}
+      {!isLoading && filteredProducts.length > 0 && (
+        <div className="flex justify-center items-center mt-10 gap-4">
           <button
-            onClick={prevPage}
-            className="px-4 py-2 bg-gray-300 rounded disabled:bg-gray-200"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
+            className={`px-5 py-2 bg-white border border-gray-300 rounded-full shadow-sm text-gray-700 font-medium ${
+              currentPage === 1
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-100"
+            } transition duration-200`}
           >
-            Previous
+            ← Previous
           </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => paginate(i + 1)}
-              className={`px-4 py-2 ${
-                currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-300"
-              } rounded`}
-            >
-              {i + 1}
-            </button>
-          ))}
+          <span className="px-6 py-2 bg-blue-500 text-white rounded-full shadow-md font-semibold">
+            {currentPage} / {totalPages}
+          </span>
           <button
-            onClick={nextPage}
-            className="px-4 py-2 bg-gray-300 rounded disabled:bg-gray-200"
+            onClick={() =>
+              setCurrentPage((prev) => (prev < totalPages ? prev + 1 : prev))
+            }
             disabled={currentPage === totalPages}
+            className={`px-5 py-2 bg-white border border-gray-300 rounded-full shadow-sm text-gray-700 font-medium ${
+              currentPage === totalPages
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-100"
+            } transition duration-200`}
           >
-            Next
+            Next →
           </button>
         </div>
       )}
 
+      {/* Popup hiển thị chi tiết sản phẩm */}
       {selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+          <div className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6 relative">
             <button
-              className="absolute top-2 right-2 text-gray-500"
-              onClick={() => setSelectedProduct(null)}
+              onClick={closePopup}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition duration-200"
             >
-              <IoMdCloseCircleOutline size={24} />
+              <FaTimes size={20} />
             </button>
+
             <img
-              src={selectedProduct.image}
+              src={selectedProduct.img}
               alt={selectedProduct.name}
-              className="w-full h-40 object-cover rounded"
+              className="w-full h-64 object-cover rounded-lg mb-4"
             />
-            <h2 className="text-xl font-bold mt-2">{selectedProduct.name}</h2>
-            <p className="text-red-500 font-bold">{selectedProduct.price}</p>
-            <p className="mt-2 text-gray-600">{selectedProduct.description}</p>
 
-            {selectedProduct.colors && (
-              <div className="mt-2">
-                <p className="font-semibold">Màu sắc:</p>
-                <div className="flex space-x-2 mt-1">
-                  {selectedProduct.colors.map((color) => (
-                    <button
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              {selectedProduct.name}
+            </h3>
+            <p className="text-red-600 font-bold text-xl mb-3">
+              ${selectedProduct.price.toLocaleString()}
+            </p>
+
+            <p className="text-gray-600 mb-4">{selectedProduct.description}</p>
+
+            {/* Thêm field Stock */}
+            <div className="mb-4">
+              <span className="font-semibold text-gray-700">Stock: </span>
+              <span
+                className={`text-lg ${
+                  selectedProduct.stock > 0 ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {selectedProduct.stock > 0
+                  ? `${selectedProduct.stock} available`
+                  : "Out of stock"}
+              </span>
+            </div>
+
+            <div className="mb-4">
+              <span className="font-semibold text-gray-700">Color:</span>
+              <div className="flex gap-3 mt-2">
+                {selectedProduct.colors.map((color) => {
+                  const colorCode = colorMap[color] || "#ccc";
+                  return (
+                    <div
                       key={color}
-                      className={`p-2 border rounded-full ${
-                        selectedColor === color ? "border-blue-500" : ""
-                      }`}
+                      className={`w-10 h-10 rounded-full border-2 cursor-pointer ${
+                        selectedColor === color
+                          ? "border-blue-500 scale-110"
+                          : "border-gray-300"
+                      } transform transition-all duration-200`}
+                      style={{ backgroundColor: colorCode }}
                       onClick={() => setSelectedColor(color)}
-                    >
-                      <span
-                        className={`w-4 h-4 inline-block rounded-full ${
-                          color === "Trắng"
-                            ? "bg-white border"
-                            : `bg-${color.toLowerCase()}-500`
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {selectedProduct.sizes && (
-              <div className="mt-2">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold">Size:</p>
-                  <button
-                    className="text-blue-500 underline"
-                    onClick={() => setShowSizeChart(true)}
-                  >
-                    Bảng số đo
-                  </button>
-                </div>
-                <div className="grid grid-cols-5 gap-2 mt-1">
-                  {selectedProduct.sizes.map((size) => (
-                    <button
-                      key={size}
-                      className={`p-2 border rounded ${
-                        selectedSize === size ? "bg-blue-500 text-white" : ""
-                      }`}
-                      onClick={() => setSelectedSize(size)}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="mt-2">
-              <p className="font-semibold">Số lượng:</p>
-              <div className="flex items-center space-x-2 mt-1">
-                <button
-                  className="border p-2"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
-                  -
-                </button>
-                <span>{quantity}</span>
-                <button
-                  className="border p-2"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
-                  +
-                </button>
+                    />
+                  );
+                })}
               </div>
             </div>
 
-            <button
-              className="mt-4 w-full bg-blue-500 text-white py-2 rounded"
-              onClick={handleAddToCart}
-            >
-              Thêm vào giỏ hàng
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showSizeChart && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-            <button
-              className="absolute top-2 right-2 text-gray-500"
-              onClick={() => setShowSizeChart(false)}
-            >
-              <IoMdCloseCircleOutline size={24} />
-            </button>
-            <h2 className="text-xl font-bold mb-4">Bảng số đo</h2>
-            <table className="w-full text-left">
-              <thead>
-                <tr>
-                  <th className="border p-2">Size</th>
-                  <th className="border p-2">Chiều dài</th>
-                  <th className="border p-2">Chiều rộng</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(sizeChart).map(([size, measurements]) => (
-                  <tr key={size}>
-                    <td className="border p-2">{size}</td>
-                    <td className="border p-2">{measurements.length}</td>
-                    <td className="border p-2">{measurements.width}</td>
-                  </tr>
+            <div className="mb-4">
+              <span className="font-semibold text-gray-700">Size:</span>
+              <div className="grid grid-cols-5 gap-2 mt-2">
+                {selectedProduct.sizes.map((size) => (
+                  <button
+                    key={size}
+                    className={`px-3 py-2 border rounded-lg font-medium ${
+                      selectedSize === size
+                        ? "bg-blue-500 text-white border-blue-500"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                    } transition duration-200`}
+                    onClick={() => setSelectedSize(size)}
+                  >
+                    {size}
+                  </button>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
+
+            <div className="mb-6 flex items-center gap-3">
+              <button
+                onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
+                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-200"
+                disabled={selectedProduct.stock === 0}
+              >
+                <FaMinus />
+              </button>
+              <span className="px-6 py-2 bg-gray-100 rounded-lg font-semibold text-gray-800">
+                {quantity}
+              </span>
+              <button
+                onClick={() =>
+                  setQuantity((prev) =>
+                    prev < selectedProduct.stock ? prev + 1 : prev
+                  )
+                }
+                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-200"
+                disabled={
+                  selectedProduct.stock === 0 ||
+                  quantity >= selectedProduct.stock
+                }
+              >
+                <FaPlus />
+              </button>
+            </div>
+
+            <button
+              onClick={handleAddToCart}
+              className={`w-full py-3 rounded-lg font-semibold transition duration-200 ${
+                selectedProduct.stock > 0
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-gray-400 text-gray-200 cursor-not-allowed"
+              }`}
+              disabled={selectedProduct.stock === 0}
+            >
+              {selectedProduct.stock > 0 ? "Add to Cart" : "Out of Stock"}
+            </button>
           </div>
         </div>
       )}
