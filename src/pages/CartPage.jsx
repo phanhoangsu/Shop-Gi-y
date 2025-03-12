@@ -3,10 +3,18 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
+import OrderDetails from "../compunents/OrderDetails";
+import CartSummary from "../compunents/CartSummary";
+import BillingForm from "../compunents/BillingForm";
+import ShippingForm from "../compunents/ShippingForm";
+import PaymentOptions from "../compunents/PaymentOptions";
+import OrderTracking from "../compunents/OrderTracking";
+import CartItem from "../compunents/CartItem";
 
 const CartPage = () => {
   const { cart, updateCartItemQuantity, removeFromCart, clearCart } = useCart();
   const navigate = useNavigate();
+
   const [discountCode, setDiscountCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [showShipping, setShowShipping] = useState(false);
@@ -170,13 +178,10 @@ const CartPage = () => {
     }
   }, [loyaltyPoints, language]);
 
-  const handleShippingInfoChange = (e) => {
+  const handleShippingInfoChange = (e) =>
     setShippingInfo({ ...shippingInfo, [e.target.id]: e.target.value });
-  };
-
-  const handleBillingInfoChange = (e) => {
+  const handleBillingInfoChange = (e) =>
     setBillingInfo({ ...billingInfo, [e.target.id]: e.target.value });
-  };
 
   const validateInput = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -229,7 +234,6 @@ const CartPage = () => {
         shippingMethod,
         status: "Đang xử lý",
       };
-      console.log("Payment Data:", paymentData);
 
       if (process.env.NODE_ENV === "production") {
         const response = await fetch("https://api.stripe.com/v1/charges", {
@@ -241,7 +245,7 @@ const CartPage = () => {
           body: JSON.stringify({
             amount: Math.round(calculateTotal * 100),
             currency: "usd",
-            source: "tok_visa", // Thay bằng token từ Stripe Elements
+            source: "tok_visa",
             description: `Order #${Date.now()}`,
           }),
         });
@@ -259,11 +263,7 @@ const CartPage = () => {
         date: new Date().toISOString(),
       };
 
-      setOrderHistory((prev) => {
-        const updatedHistory = [...prev, newOrder];
-        console.log("Order saved to history:", newOrder.id);
-        return updatedHistory;
-      });
+      setOrderHistory((prev) => [...prev, newOrder]);
       setLoyaltyPoints((prev) => prev + Math.floor(calculateTotal / 10));
       clearCart();
       setDiscount(0);
@@ -272,12 +272,8 @@ const CartPage = () => {
       toast.success(translations[language].paymentSuccess);
       setTimeout(() => navigate("/"), 2000);
     } catch (error) {
-      console.error("Payment Error Details:", {
-        message: error.message,
-        stack: error.stack,
-        paymentData,
-      });
-      toast.error(`Có lỗi xảy ra: ${error.message}. Vui lòng thử lại sau!`);
+      console.error("Payment Error:", error);
+      toast.error(`${translations[language].paymentError}: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -324,7 +320,6 @@ const CartPage = () => {
         })
       );
     };
-
     const interval = setInterval(updateOrderStatus, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -346,160 +341,6 @@ const CartPage = () => {
     currentPage * ordersPerPage
   );
 
-  // CartItem component inline
-  const renderCartItem = (item) => (
-    <div
-      key={`${item.id}-${item.color}-${item.size}`}
-      className="flex items-center border-b py-4 flex-col sm:flex-row"
-    >
-      <img
-        src={item.image || "https://via.placeholder.com/80"}
-        alt={item.name}
-        className="w-16 h-16 object-cover rounded mr-4 mb-2 sm:mb-0"
-      />
-      <div className="flex-1">
-        <h3 className="font-semibold">{item.name}</h3>
-        <p className="text-gray-600">{formatCurrency(item.price)}</p>
-        <p className="text-gray-500 text-sm">
-          Màu: {item.color}, Kích thước: {item.size}
-        </p>
-        <div className="flex items-center mt-2">
-          <button
-            onClick={() => handleQuantityChange(item.id, "decrease")}
-            className="bg-gray-200 px-2 py-1 rounded-l"
-            disabled={item.quantity <= 1}
-          >
-            -
-          </button>
-          <input
-            type="number"
-            value={item.quantity}
-            onChange={(e) => handleQuantityChange(item.id, "manual", e)}
-            className="w-12 text-center border-t border-b"
-            min="1"
-            max={item.stock}
-          />
-          <button
-            onClick={() => handleQuantityChange(item.id, "increase")}
-            className="bg-gray-200 px-2 py-1 rounded-r"
-            disabled={item.quantity >= item.stock}
-          >
-            +
-          </button>
-          <p className="ml-2 text-sm text-gray-500">(Tồn kho: {item.stock})</p>
-        </div>
-      </div>
-      <button
-        onClick={() => handleRemoveItem(item.id, item.color, item.size)}
-        className="text-red-500 hover:text-red-700 ml-4"
-      >
-        Xóa
-      </button>
-    </div>
-  );
-
-  // OrderDetails component inline
-  const renderOrderDetails = () => {
-    if (!selectedOrder) return null;
-
-    const statusColors = {
-      "Đang xử lý": "bg-yellow-100 text-yellow-800",
-      "Đang giao": "bg-blue-100 text-blue-800",
-      "Đã giao": "bg-green-100 text-green-800",
-      "Đã hủy": "bg-red-100 text-red-800",
-    };
-
-    const statusSteps = ["Đang xử lý", "Đang giao", "Đã giao"];
-    const currentStep = statusSteps.indexOf(selectedOrder.status);
-
-    return (
-      <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-          <h3 className="text-xl font-semibold mb-4">
-            {translations[language].orderLabel}
-            {selectedOrder.id}
-          </h3>
-          <p>
-            <strong>Ngày đặt:</strong>{" "}
-            {new Date(selectedOrder.date).toLocaleDateString()}
-          </p>
-          <p>
-            <strong>Trạng thái:</strong>{" "}
-            <span
-              className={`px-2 py-1 rounded-full text-sm ${
-                statusColors[selectedOrder.status]
-              }`}
-            >
-              {selectedOrder.status}
-            </span>
-          </p>
-          <div className="my-4">
-            <div className="flex justify-between">
-              {statusSteps.map((step, index) => (
-                <div key={step} className="flex-1 text-center">
-                  <div
-                    className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center ${
-                      index <= currentStep
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-300 text-gray-700"
-                    }`}
-                  >
-                    {index + 1}
-                  </div>
-                  <p className="text-sm mt-1">{step}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <p>
-            <strong>Tổng tiền:</strong> {formatCurrency(selectedOrder.total)}
-          </p>
-          {selectedOrder.shippingInfo && (
-            <div className="mt-2">
-              <strong>{translations[language].shippingInfo}:</strong>
-              <p>Tên: {selectedOrder.shippingInfo.name}</p>
-              <p>Địa chỉ: {selectedOrder.shippingInfo.address}</p>
-              <p>Số điện thoại: {selectedOrder.shippingInfo.phone}</p>
-            </div>
-          )}
-          <div className="mt-4">
-            <strong>Sản phẩm:</strong>
-            <ul className="list-disc ml-5">
-              {selectedOrder.cartItems.map((item) => (
-                <li key={`${item.id}-${item.color}-${item.size}`}>
-                  {item.name} - {item.quantity} x {formatCurrency(item.price)} (
-                  Màu: {item.color}, Kích thước: {item.size})
-                </li>
-              ))}
-            </ul>
-          </div>
-          {selectedOrder.notes && (
-            <p className="mt-2">
-              <strong>{translations[language].notes}:</strong>{" "}
-              {selectedOrder.notes}
-            </p>
-          )}
-          <div className="mt-4 flex gap-2">
-            <button
-              onClick={() => setSelectedOrder(null)}
-              className="bg-gray-500 hover:bg-gray-700 text-white py-2 px-4 rounded"
-            >
-              Đóng
-            </button>
-            {selectedOrder.status === "Đang xử lý" && (
-              <button
-                onClick={() => handleCancelOrder(selectedOrder.id)}
-                className="bg-red-500 hover:bg-red-700 text-white py-2 px-4 rounded"
-              >
-                Hủy đơn
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="container mx-auto p-4 md:p-8">
       <ToastContainer />
@@ -508,7 +349,14 @@ const CartPage = () => {
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
         </div>
       )}
-      {renderOrderDetails()}
+      <OrderDetails
+        selectedOrder={selectedOrder}
+        setSelectedOrder={setSelectedOrder}
+        handleCancelOrder={handleCancelOrder}
+        language={language}
+        translations={translations}
+        formatCurrency={formatCurrency}
+      />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-semibold mb-4">
@@ -519,122 +367,48 @@ const CartPage = () => {
               {translations[language].noCartItems}
             </p>
           ) : (
-            cart.map(renderCartItem)
+            cart.map((item) => (
+              <CartItem
+                key={`${item.id}-${item.color}-${item.size}`}
+                item={item}
+                handleQuantityChange={handleQuantityChange}
+                handleRemoveItem={handleRemoveItem}
+                formatCurrency={formatCurrency}
+              />
+            ))
           )}
-          <div className="mt-4">
-            <div className="flex justify-between">
-              <span>{translations[language].subtotal}:</span>
-              <span>{formatCurrency(calculateSubtotal)}</span>
-            </div>
-            {discount > 0 && (
-              <div className="flex justify-between text-green-600">
-                <span>{translations[language].discount}:</span>
-                <span>-{formatCurrency(calculateSubtotal * discount)}</span>
-              </div>
-            )}
-            {showShipping && (
-              <div className="flex justify-between">
-                <span>{translations[language].shippingFee}:</span>
-                <span>{formatCurrency(calculateShippingFee)}</span>
-              </div>
-            )}
-            <div className="flex justify-between font-semibold mt-2">
-              <span>{translations[language].total}:</span>
-              <span>{formatCurrency(calculateTotal)}</span>
-            </div>
-            <p className="mt-2 text-sm text-gray-500">
-              {translations[language].loyaltyPoints}: {loyaltyPoints} điểm
-            </p>
-          </div>
+          <CartSummary
+            calculateSubtotal={calculateSubtotal}
+            calculateShippingFee={calculateShippingFee}
+            calculateTotal={calculateTotal}
+            discount={discount}
+            showShipping={showShipping}
+            loyaltyPoints={loyaltyPoints}
+            formatCurrency={formatCurrency}
+            language={language}
+            translations={translations}
+          />
         </div>
-
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-semibold mb-4">
             {translations[language].payment}
           </h2>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              {translations[language].discountCode}
-            </label>
-            <input
-              type="text"
-              value={discountCode}
-              onChange={handleDiscountCodeChange}
-              className="border rounded w-full py-2 px-3"
-              placeholder={translations[language].discountCode}
-            />
-          </div>
-
-          {loyaltyPoints >= 100 && (
-            <div className="mb-4">
-              <button
-                onClick={handleRedeemPoints}
-                className="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded w-full"
-              >
-                {translations[language].redeemPoints} (100 điểm = 10%)
-              </button>
-            </div>
-          )}
-
-          <h3 className="text-lg font-semibold mb-2">
-            {translations[language].billingInfo}
-          </h3>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              {translations[language].name}
-            </label>
-            <input
-              className="border rounded w-full py-2 px-3"
-              type="text"
-              id="name"
-              value={billingInfo.name}
-              onChange={handleBillingInfoChange}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              {translations[language].email}
-            </label>
-            <input
-              className="border rounded w-full py-2 px-3"
-              type="email"
-              id="email"
-              value={billingInfo.email}
-              onChange={handleBillingInfoChange}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              {translations[language].phone}
-            </label>
-            <input
-              className="border rounded w-full py-2 px-3"
-              type="tel"
-              id="phone"
-              value={billingInfo.phone}
-              onChange={handleBillingInfoChange}
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-2">
-              {translations[language].paymentMethod}
-            </h3>
-            <select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              className="border rounded w-full py-2 px-3"
-            >
-              <option value="cash">Thanh toán khi nhận hàng</option>
-              <option value="card">Thẻ tín dụng</option>
-              <option value="paypal">PayPal</option>
-            </select>
-          </div>
-
+          <PaymentOptions
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
+            discountCode={discountCode}
+            handleDiscountCodeChange={handleDiscountCodeChange}
+            loyaltyPoints={loyaltyPoints}
+            handleRedeemPoints={handleRedeemPoints}
+            language={language}
+            translations={translations}
+          />
+          <BillingForm
+            billingInfo={billingInfo}
+            handleBillingInfoChange={handleBillingInfoChange}
+            language={language}
+            translations={translations}
+          />
           <button
             className="text-blue-500 hover:underline mb-4"
             onClick={() => setShowShipping(!showShipping)}
@@ -644,62 +418,15 @@ const CartPage = () => {
               : translations[language].toggleShipping}
           </button>
           {showShipping && (
-            <>
-              <h3 className="text-lg font-semibold mb-2">
-                {translations[language].shippingInfo}
-              </h3>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  {translations[language].name}
-                </label>
-                <input
-                  className="border rounded w-full py-2 px-3"
-                  type="text"
-                  id="name"
-                  value={shippingInfo.name}
-                  onChange={handleShippingInfoChange}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  {translations[language].address}
-                </label>
-                <input
-                  className="border rounded w-full py-2 px-3"
-                  type="text"
-                  id="address"
-                  value={shippingInfo.address}
-                  onChange={handleShippingInfoChange}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  {translations[language].phone}
-                </label>
-                <input
-                  className="border rounded w-full py-2 px-3"
-                  type="tel"
-                  id="phone"
-                  value={shippingInfo.phone}
-                  onChange={handleShippingInfoChange}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  {translations[language].shippingMethod}
-                </label>
-                <select
-                  value={shippingMethod}
-                  onChange={(e) => setShippingMethod(e.target.value)}
-                  className="border rounded w-full py-2 px-3"
-                >
-                  <option value="standard">Tiêu chuẩn (2-5 ngày)</option>
-                  <option value="express">Nhanh (1-2 ngày)</option>
-                </select>
-              </div>
-            </>
+            <ShippingForm
+              shippingInfo={shippingInfo}
+              handleShippingInfoChange={handleShippingInfoChange}
+              shippingMethod={shippingMethod}
+              setShippingMethod={setShippingMethod}
+              language={language}
+              translations={translations}
+            />
           )}
-
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
               {translations[language].notes}
@@ -711,131 +438,21 @@ const CartPage = () => {
               placeholder="Nhập ghi chú cho đơn hàng..."
             />
           </div>
-
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-2">
-              {translations[language].orderTracking}
-            </h3>
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border rounded w-full py-2 px-3"
-                placeholder={translations[language].searchOrders}
-              />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="border rounded w-full sm:w-40 py-2 px-3"
-              >
-                <option value="Tất cả">{translations[language].all}</option>
-                <option value="Đang xử lý">Đang xử lý</option>
-                <option value="Đang giao">Đang giao</option>
-                <option value="Đã giao">Đã giao</option>
-                <option value="Đã hủy">Đã hủy</option>
-              </select>
-            </div>
-            {paginatedOrders.length > 0 ? (
-              <>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full bg-white">
-                    <thead>
-                      <tr>
-                        <th className="py-2 px-4 border-b text-left">
-                          Đơn hàng
-                        </th>
-                        <th className="py-2 px-4 border-b text-left">Ngày</th>
-                        <th className="py-2 px-4 border-b text-left">
-                          Trạng thái
-                        </th>
-                        <th className="py-2 px-4 border-b text-left">
-                          Tổng tiền
-                        </th>
-                        <th className="py-2 px-4 border-b text-left">
-                          Hành động
-                        </th>
-                        <th className="py-2 px-4 border-b text-left"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedOrders.map((order) => (
-                        <tr key={order.id}>
-                          <td className="py-2 px-4 border-b">
-                            {translations[language].orderLabel}
-                            {order.id}
-                          </td>
-                          <td className="py-2 px-4 border-b">
-                            {new Date(order.date).toLocaleDateString()}
-                          </td>
-                          <td className="py-2 px-4 border-b">
-                            <span
-                              className={`px-2 py-1 rounded-full text-sm ${
-                                order.status === "Đang xử lý"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : order.status === "Đang giao"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : order.status === "Đã giao"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {order.status}
-                            </span>
-                          </td>
-                          <td className="py-2 px-4 border-b">
-                            {formatCurrency(order.total)}
-                          </td>
-                          <td className="py-2 px-4 border-b">
-                            <button
-                              onClick={() => setSelectedOrder(order)}
-                              className="text-blue-500 hover:underline"
-                            >
-                              {translations[language].viewDetails}
-                            </button>
-                          </td>
-                          <td className="py-2 px-4 border-b">
-                            <button
-                              onClick={() => handleDeleteOrder(order.id)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              X
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="mt-4 flex justify-between items-center">
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-1 px-3 rounded disabled:opacity-50"
-                    disabled={currentPage === 1}
-                  >
-                    Trước
-                  </button>
-                  <span>
-                    {translations[language].page} {currentPage} / {totalPages}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-1 px-3 rounded disabled:opacity-50"
-                    disabled={currentPage === totalPages}
-                  >
-                    Sau
-                  </button>
-                </div>
-              </>
-            ) : (
-              <p>{translations[language].noOrders}</p>
-            )}
-          </div>
-
+          <OrderTracking
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            paginatedOrders={paginatedOrders}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            totalPages={totalPages}
+            setSelectedOrder={setSelectedOrder}
+            handleDeleteOrder={handleDeleteOrder}
+            formatCurrency={formatCurrency}
+            language={language}
+            translations={translations}
+          />
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
             onClick={handlePayment}

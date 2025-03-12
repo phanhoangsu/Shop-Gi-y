@@ -18,7 +18,7 @@ const OutstandingPrd = () => {
     },
     {
       id: 2,
-      src: "https://res.cloudinary.com/dbpqjnu0o/image/upload/w_300,h_300/v1741696647/536737_w2fw1_9700.png_f253a59ca9614d4c8844b859a0b56fd1_ioawq8.png",
+      src: "https://res.cloudinary.com/dbpqjnu0o/image/upload/v1741696800/Gia%CC%80y-Balenciaga-su%CC%A3c-Den-6-768x1024_ujk931.webp",
       alt: "Giày cao gót nữ",
       name: "Women's Heels",
       price: 119.99,
