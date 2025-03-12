@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { FaSearch, FaPlus, FaMinus, FaTimes, FaHeart } from "react-icons/fa";
+import {
+  FaSearch,
+  FaPlus,
+  FaMinus,
+  FaTimes,
+  FaHeart,
+  FaFilter,
+} from "react-icons/fa"; // Added FaFilter for the toggle icon
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
@@ -35,6 +42,9 @@ const ManPage = () => {
   const [wishlist, setWishlist] = useState(
     JSON.parse(localStorage.getItem("wishlist")) || []
   );
+
+  // State to control the visibility of the filter section
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -157,21 +167,34 @@ const ManPage = () => {
         Men's Shoes
       </h2>
 
-      <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+      {/* Search Bar and Filter Toggle Button */}
+      <div className="mb-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full max-w-lg">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearch}
+            placeholder="Search products..."
+            className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        </div>
+        <button
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+        >
+          <FaFilter />
+          <span>{isFilterOpen ? "Hide Filters" : "Show Filters"}</span>
+        </button>
+      </div>
+
+      {/* Filter Section (Collapsible) */}
+      <div
+        className={`mb-8 bg-white p-4 rounded-lg shadow-md transition-all duration-300 ${
+          isFilterOpen ? "block" : "hidden"
+        }`}
+      >
         <div className="flex flex-col gap-4">
-          <div>
-            <label className="font-semibold">Search:</label>
-            <div className="relative w-full max-w-lg">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearch}
-                placeholder="Search products..."
-                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
-          </div>
           <div>
             <label className="font-semibold">
               Price Range: ${priceRange[0]} - ${priceRange[1]}

@@ -49,6 +49,12 @@ const Banner = () => {
             >
               Kids
             </li>
+            <li
+              className="cursor-pointer hover:text-red-500 transition"
+              onClick={() => navigate("/news")}
+            >
+              Tin tức
+            </li>
           </ul>
 
           {/* Search và Cart */}
@@ -111,6 +117,12 @@ const Banner = () => {
                 onClick={() => navigate("/list/kids")}
               >
                 Kids
+              </li>
+              <li
+                className="cursor-pointer hover:text-red-500 transition"
+                onClick={() => navigate("/news")}
+              >
+                Tin tức
               </li>
               <div className="relative">
                 <input

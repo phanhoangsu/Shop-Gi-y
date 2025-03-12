@@ -10,6 +10,7 @@ import ManPage from "./pages/ManPage";
 import WomenPage from "./pages/WomenPage";
 import KidsPage from "./pages/KidsPage";
 import { CartProvider } from "./context/CartContext";
+import NewsPage from "./pages/NewsPage";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<RegisterPage />} />
         <Route path="/detail" element={<DetailPage />} />
+        <Route path="/news" element={<NewsPage />} />
         <Route path="/*" element={<h1>NOT FOUND</h1>} />
       </Routes>
     </CartProvider>
