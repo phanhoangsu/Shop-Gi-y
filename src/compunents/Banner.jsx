@@ -2,34 +2,62 @@ import React, { useState } from "react";
 import { FaCartPlus } from "react-icons/fa";
 import { FiSearch, FiMenu, FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 
 const Banner = () => {
   const navigate = useNavigate();
+  const { cart, user, isLoggedIn, logout } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [cartItems] = useState(3); // Giả lập số lượng sản phẩm trong giỏ
+  const [isLoading, setIsLoading] = useState(false); // Thêm state cho loading
+  const cartItems = cart?.length || 0;
 
-  // Xử lý tìm kiếm (có thể kết nối với API sau)
   const handleSearch = (e) => {
     if (e.key === "Enter") {
       console.log("Searching:", e.target.value);
-      // Thêm logic gọi API tìm kiếm ở đây
     }
+  };
+
+  const getAvatar = (username) => {
+    if (!username) return "";
+    return username.slice(0, 2).toUpperCase();
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  // Hàm xử lý khi click logo
+  const handleLogoClick = () => {
+    setIsLoading(true);
+    // Simulate loading then reload
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate("/");
+      window.location.reload(); // Reload trang
+    }, 1000); // Delay 1 giây để thấy hiệu ứng loading
   };
 
   return (
     <div className="bg-white shadow-sm">
       <nav className="container mx-auto px-4 sm:px-6 lg:px-16 py-6">
-        {/* Flex container chính */}
         <div className="flex justify-between items-center">
-          {/* Logo */}
           <div
-            className="text-2xl sm:text-3xl font-bold text-red-500 cursor-pointer transition-transform hover:scale-105"
-            onClick={() => navigate("/")}
+            className="text-2xl sm:text-3xl font-bold text-red-500 cursor-pointer transition-transform hover:scale-105 relative"
+            onClick={handleLogoClick}
           >
-            jump<span className="text-blue-400">.</span>
+            {/* Logo */}
+            <span className="relative">
+              jump<span className="text-blue-400">.</span>
+              {/* Hiệu ứng loading */}
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-6 h-6 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
+            </span>
           </div>
 
-          {/* Menu desktop */}
           <ul className="hidden md:flex items-center space-x-8 text-lg text-gray-800">
             <li
               className="cursor-pointer hover:text-red-500 transition"
@@ -57,9 +85,7 @@ const Banner = () => {
             </li>
           </ul>
 
-          {/* Search và Cart */}
           <div className="flex items-center space-x-4">
-            {/* Search */}
             <div className="hidden sm:block relative">
               <input
                 type="text"
@@ -72,7 +98,6 @@ const Banner = () => {
               </span>
             </div>
 
-            {/* Cart */}
             <div
               className="flex items-center cursor-pointer hover:text-red-500 transition relative"
               onClick={() => navigate("/cart")}
@@ -86,7 +111,31 @@ const Banner = () => {
               <span className="hidden sm:inline ml-2">Cart</span>
             </div>
 
-            {/* Mobile menu button */}
+            {isLoggedIn ? (
+              <div className="flex items-center space-x-2">
+                <div
+                  className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold cursor-pointer hover:bg-blue-600 transition"
+                  onClick={() => navigate("/profile")}
+                  title={user?.username}
+                >
+                  {getAvatar(user?.username)}
+                </div>
+                <button
+                  className="text-gray-800 hover:text-red-500 transition"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <button
+                className="text-gray-800 hover:text-red-500 transition"
+                onClick={() => navigate("/login")}
+              >
+                Login
+              </button>
+            )}
+
             <button
               className="md:hidden text-gray-800"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -96,7 +145,6 @@ const Banner = () => {
           </div>
         </div>
 
-        {/* Mobile menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4">
             <ul className="space-y-4 text-gray-800">
@@ -135,6 +183,30 @@ const Banner = () => {
                   <FiSearch size={20} />
                 </span>
               </div>
+              {isLoggedIn ? (
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold cursor-pointer hover:bg-blue-600 transition"
+                    onClick={() => navigate("/profile")}
+                    title={user?.username}
+                  >
+                    {getAvatar(user?.username)}
+                  </div>
+                  <button
+                    className="text-gray-800 hover:text-red-500 transition"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="text-gray-800 hover:text-red-500 transition"
+                  onClick={() => navigate("/login")}
+                >
+                  Login
+                </button>
+              )}
             </ul>
           </div>
         )}

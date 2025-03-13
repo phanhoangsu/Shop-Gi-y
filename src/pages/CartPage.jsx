@@ -12,7 +12,16 @@ import OrderTracking from "../compunents/OrderTracking";
 import CartItem from "../compunents/CartItem";
 
 const CartPage = () => {
-  const { cart, updateCartItemQuantity, removeFromCart, clearCart } = useCart();
+  const {
+    cart,
+    updateCartItemQuantity,
+    removeFromCart,
+    clearCart,
+    addToCart,
+    user,
+    logout,
+    isLoggedIn,
+  } = useCart();
   const navigate = useNavigate();
 
   const [discountCode, setDiscountCode] = useState("");
@@ -93,6 +102,7 @@ const CartPage = () => {
       redeemPoints: "Đổi điểm",
       pointsRedeemed: "Đã sử dụng điểm thưởng!",
       deleteOrderConfirm: "Bạn có chắc muốn xóa đơn hàng này?",
+      logout: "Đăng xuất",
     },
   };
 
@@ -235,34 +245,13 @@ const CartPage = () => {
         status: "Đang xử lý",
       };
 
-      if (process.env.NODE_ENV === "production") {
-        const response = await fetch("https://api.stripe.com/v1/charges", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.REACT_APP_STRIPE_KEY}`,
-          },
-          body: JSON.stringify({
-            amount: Math.round(calculateTotal * 100),
-            currency: "usd",
-            source: "tok_visa",
-            description: `Order #${Date.now()}`,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Thanh toán thất bại từ server!");
-        }
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      }
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Giả lập API
 
       const newOrder = {
         id: Date.now(),
         ...paymentData,
         date: new Date().toISOString(),
       };
-
       setOrderHistory((prev) => [...prev, newOrder]);
       setLoyaltyPoints((prev) => prev + Math.floor(calculateTotal / 10));
       clearCart();
@@ -272,8 +261,7 @@ const CartPage = () => {
       toast.success(translations[language].paymentSuccess);
       setTimeout(() => navigate("/"), 2000);
     } catch (error) {
-      console.error("Payment Error:", error);
-      toast.error(`${translations[language].paymentError}: ${error.message}`);
+      toast.error(translations[language].paymentError);
     } finally {
       setIsLoading(false);
     }
@@ -304,23 +292,17 @@ const CartPage = () => {
   }, [orderHistory, loyaltyPoints]);
 
   useEffect(() => {
-    const updateOrderStatus = () => {
+    const interval = setInterval(() => {
       setOrderHistory((prev) =>
         prev.map((order) => {
-          if (order.status === "Đang xử lý") {
-            return Math.random() > 0.5
-              ? { ...order, status: "Đang giao" }
-              : order;
-          } else if (order.status === "Đang giao") {
-            return Math.random() > 0.5
-              ? { ...order, status: "Đã giao" }
-              : order;
-          }
+          if (order.status === "Đang xử lý" && Math.random() > 0.5)
+            return { ...order, status: "Đang giao" };
+          if (order.status === "Đang giao" && Math.random() > 0.5)
+            return { ...order, status: "Đã giao" };
           return order;
         })
       );
-    };
-    const interval = setInterval(updateOrderStatus, 10000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -357,11 +339,42 @@ const CartPage = () => {
         translations={translations}
         formatCurrency={formatCurrency}
       />
+      <div className="mb-4 flex justify-between items-center">
+        {isLoggedIn && user ? <span>Xin chào, {user.username}!</span> : null}
+        {isLoggedIn && (
+          <button
+            onClick={() => {
+              logout();
+              toast.success("Đăng xuất thành công!");
+              navigate("/");
+            }}
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          >
+            {translations[language].logout}
+          </button>
+        )}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-semibold mb-4">
             {translations[language].cart}
           </h2>
+          <button
+            onClick={() =>
+              addToCart({
+                id: 1,
+                name: "Test Product",
+                price: 10,
+                quantity: 1,
+                color: "red",
+                size: "M",
+                stock: 10,
+              })
+            }
+            className="bg-green-500 text-white py-2 px-4 rounded mb-4"
+          >
+            Add Test Product
+          </button>
           {cart.length === 0 ? (
             <p className="text-gray-600">
               {translations[language].noCartItems}

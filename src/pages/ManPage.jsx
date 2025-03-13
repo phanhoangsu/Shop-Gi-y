@@ -6,10 +6,15 @@ import {
   FaTimes,
   FaHeart,
   FaFilter,
-} from "react-icons/fa"; // Added FaFilter for the toggle icon
+  FaEye,
+  FaStar,
+  FaShareAlt,
+} from "react-icons/fa";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import Zoom from "react-medium-image-zoom";
+import "react-medium-image-zoom/dist/styles.css";
 
 const colorMap = {
   đen: "#000000",
@@ -42,8 +47,7 @@ const ManPage = () => {
   const [wishlist, setWishlist] = useState(
     JSON.parse(localStorage.getItem("wishlist")) || []
   );
-
-  // State to control the visibility of the filter section
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -389,11 +393,35 @@ const ManPage = () => {
       {quickViewProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-40">
           <div className="bg-white p-4 rounded-lg max-w-sm">
-            <img
-              src={quickViewProduct.img}
-              alt={quickViewProduct.name}
-              className="w-full h-40 object-cover rounded-lg mb-2"
-            />
+            <div className="relative">
+              <Zoom>
+                <img
+                  src={quickViewProduct.images[currentImageIndex]}
+                  alt={quickViewProduct.name}
+                  className="w-full h-40 object-cover rounded-lg mb-2"
+                />
+              </Zoom>
+              <button
+                onClick={() =>
+                  setCurrentImageIndex((prev) =>
+                    prev > 0 ? prev - 1 : quickViewProduct.images.length - 1
+                  )
+                }
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full"
+              >
+                &lt;
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentImageIndex((prev) =>
+                    prev < quickViewProduct.images.length - 1 ? prev + 1 : 0
+                  )
+                }
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full"
+              >
+                &gt;
+              </button>
+            </div>
             <h3 className="text-lg font-semibold">{quickViewProduct.name}</h3>
             <p className="text-red-600 font-bold">
               ${quickViewProduct.price.toLocaleString()}
@@ -407,21 +435,26 @@ const ManPage = () => {
                 />
               ))}
             </div>
-            <button
-              onClick={() => setQuickViewProduct(null)}
-              className="mt-2 text-gray-500 hover:text-gray-800"
-            >
-              Close
-            </button>
-            <button
-              onClick={() => {
-                setQuickViewProduct(null);
-                openPopup(quickViewProduct);
-              }}
-              className="mt-2 ml-2 bg-blue-500 text-white px-3 py-1 rounded-full"
-            >
-              View Details
-            </button>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => setQuickViewProduct(null)}
+                className="mt-2 text-gray-500 hover:text-gray-800 transition duration-200 ease-in-out transform hover:scale-110"
+                title="Close"
+              >
+                <FaTimes size={18} />
+              </button>
+              <button
+                onClick={() => {
+                  setQuickViewProduct(null);
+                  openPopup(quickViewProduct);
+                }}
+                className="mt-2 ml-2 bg-blue-500 text-white px-3 py-1 rounded-full hover:bg-blue-600 transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2"
+                title="View Details"
+              >
+                <FaEye size={16} />
+                <span>View Details</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
