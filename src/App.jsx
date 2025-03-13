@@ -20,13 +20,20 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/list" element={<ListPage />}>
           <Route path="man" element={<ManPage />} />
+
           <Route path="women" element={<WomenPage />} />
+
           <Route path="kids" element={<KidsPage />} />
         </Route>
+
         <Route path="/cart" element={<CartPage />} />
+
         <Route path="/login" element={<LoginPage />} />
+
         <Route path="/signup" element={<RegisterPage />} />
+
         <Route path="/detail" element={<DetailPage />} />
+
         <Route path="/news" element={<NewsPage />} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
