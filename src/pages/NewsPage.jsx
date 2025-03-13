@@ -8,6 +8,8 @@ import {
   FiClock,
   FiGrid,
   FiList,
+  FiArrowLeft,
+  FiX,
 } from "react-icons/fi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -139,6 +141,8 @@ const NewsPage = () => {
   const [userProfile, setUserProfile] = useState({
     name: "Người dùng ẩn danh",
   });
+  const [showPopup, setShowPopup] = useState(true);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const itemsPerPage = 2;
 
   const categories = [
@@ -162,13 +166,12 @@ const NewsPage = () => {
     return () => clearTimeout(timer);
   }, [selectedCategory, searchTerm, sortBy]);
 
-  // Giả lập thông báo bình luận mới
   useEffect(() => {
     const interval = setInterval(() => {
       if (selectedNews && comments[selectedNews.id]?.length > 0) {
         toast.info("Có bình luận mới trong bài viết bạn đang xem!");
       }
-    }, 60000); // Kiểm tra mỗi phút
+    }, 60000);
     return () => clearInterval(interval);
   }, [comments, selectedNews]);
 
@@ -258,108 +261,114 @@ const NewsPage = () => {
     }
   };
 
-  const NewsDetail = ({ news, onClose }) => {
+  const NewsDetail = ({ news, onBack }) => {
     const [newComment, setNewComment] = useState("");
     const relatedNews = newsData
       .filter((n) => n.category === news.category && n.id !== news.id)
       .slice(0, 3);
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
         <Helmet>
           <title>{news.title}</title>
           <meta name="description" content={news.content.slice(0, 150)} />
         </Helmet>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <button
-            onClick={onClose}
-            className="float-right text-gray-600 dark:text-gray-300 hover:text-red-500"
-          >
-            X
-          </button>
-          {news.media?.type === "video" ? (
-            <video controls src={news.media.url} className="w-full h-64 mb-4" />
-          ) : (
-            <img
-              src={news.image}
-              alt={news.title}
-              className="w-full h-64 object-cover rounded-lg mb-4"
-              loading="lazy"
-            />
-          )}
-          <h2 className={`text-2xl font-bold mb-2 dark:text-white ${fontSize}`}>
-            {news.title}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-2">
-            {news.date} | {news.category} | <FiClock className="inline mr-1" />{" "}
-            {getReadingTime(news.wordCount)} phút đọc
-          </p>
-          <p className={`text-gray-800 dark:text-gray-200 ${fontSize}`}>
-            {news.content}
-          </p>
-          <div className="mt-4 flex items-center gap-4">
-            <FiHeart
-              className="cursor-pointer text-red-500 hover:text-red-600"
-              size={20}
-              onClick={() => handleHeart(news.id)}
-            />
-            <span className="text-gray-600 dark:text-gray-300">
-              {hearts[news.id] || 0} lượt thả tim
-            </span>
-          </div>
-          <div className="mt-4">
-            <h4 className="font-semibold dark:text-white">Tags:</h4>
+        <button
+          onClick={onBack}
+          className="mb-4 flex items-center text-gray-600 dark:text-gray-300 hover:text-red-500 transition-colors"
+        >
+          <FiArrowLeft className="mr-2" /> Quay lại
+        </button>
+        {news.media?.type === "video" ? (
+          <video
+            controls
+            className="w-full h-64 mb-4 rounded-lg"
+            src={news.media.url}
+          />
+        ) : (
+          <img
+            src={news.image}
+            alt={news.title}
+            className="w-full h-64 object-cover rounded-lg mb-4"
+            loading="lazy"
+          />
+        )}
+        <h2 className={`text-2xl font-bold mb-2 dark:text-white ${fontSize}`}>
+          {news.title}
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300 mb-2 flex items-center">
+          {news.date} | {news.category} | <FiClock className="ml-1 mr-1" />{" "}
+          {getReadingTime(news.wordCount)} phút đọc
+        </p>
+        <p className={`text-gray-800 dark:text-gray-200 ${fontSize}`}>
+          {news.content}
+        </p>
+        <div className="mt-4 flex items-center gap-4">
+          <FiHeart
+            className="cursor-pointer text-red-500 hover:text-red-600 transition-colors"
+            size={20}
+            onClick={() => handleHeart(news.id)}
+          />
+          <span className="text-gray-600 dark:text-gray-300">
+            {hearts[news.id] || 0} lượt thả tim
+          </span>
+        </div>
+        <div className="mt-4">
+          <h4 className="font-semibold dark:text-white">Tags:</h4>
+          <div className="flex flex-wrap gap-2 mt-2">
             {news.tags.map((tag) => (
               <span
                 key={tag}
-                className="inline-block bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full mr-2 mt-2 dark:text-white"
+                className="inline-block bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full text-sm text-gray-800 dark:text-gray-200"
               >
                 {tag}
               </span>
             ))}
           </div>
-          <div className="mt-6">
-            <h4 className="font-semibold dark:text-white">Bình luận:</h4>
+        </div>
+        <div className="mt-6">
+          <h4 className="font-semibold dark:text-white">Bình luận:</h4>
+          <div className="mt-2 space-y-3">
             {(comments[news.id] || []).map((comment) => (
               <div
                 key={comment.id}
-                className="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded"
+                className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg"
               >
                 <p className="text-gray-800 dark:text-gray-200">
                   <strong>{comment.user}:</strong> {comment.text}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {comment.date}
                 </p>
               </div>
             ))}
-            <div className="mt-4 flex gap-2">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Viết bình luận..."
-                className="flex-1 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <button
-                onClick={() => {
-                  handleComment(news.id, newComment);
-                  setNewComment("");
-                }}
-                className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-              >
-                Gửi
-              </button>
-            </div>
           </div>
-          <div className="mt-6">
-            <h4 className="font-semibold dark:text-white">
-              Tin tức liên quan:
-            </h4>
+          <div className="mt-4 flex gap-2">
+            <input
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Viết bình luận..."
+              className="flex-1 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
+            />
+            <button
+              onClick={() => {
+                handleComment(news.id, newComment);
+                setNewComment("");
+              }}
+              className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+            >
+              Gửi
+            </button>
+          </div>
+        </div>
+        <div className="mt-6">
+          <h4 className="font-semibold dark:text-white">Tin tức liên quan:</h4>
+          <div className="mt-2 space-y-2">
             {relatedNews.map((item) => (
               <div
                 key={item.id}
-                className="mt-2 cursor-pointer text-blue-500 hover:underline"
+                className="cursor-pointer text-blue-500 hover:underline transition-colors"
                 onClick={() => setSelectedNews(item)}
               >
                 {item.title}
@@ -371,13 +380,43 @@ const NewsPage = () => {
     );
   };
 
+  const PersistentPopup = () => {
+    return (
+      <div
+        className={`fixed top-0 left-0 w-full bg-white dark:bg-gray-800 shadow-lg p-4 flex items-center justify-between z-50 ${
+          showPopup ? "block" : "hidden"
+        }`}
+      >
+        <div>
+          <h3 className="text-lg font-semibold dark:text-white">
+            Sale cuối mùa giảm giá lên đến 50%
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+            2025-03-11 | Khuyến mãi lớn cuối mùa với nhiều sản phẩm giảm giá
+            sâu, cơ hội không thể bỏ lỡ...
+          </p>
+          <button className="mt-2 px-4 py-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
+            Tìm hiểu thêm
+          </button>
+        </div>
+        <button
+          onClick={() => setShowPopup(false)}
+          className="text-gray-600 dark:text-gray-300 hover:text-red-500 transition-colors"
+        >
+          <FiX size={20} />
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div
       className={`min-h-screen ${
         darkMode ? "dark bg-gray-900 text-white" : "bg-gray-50"
-      }`}
+      } pt-16`}
     >
       <ToastContainer position="top-right" autoClose={3000} />
+      {showPopup && <PersistentPopup />}
 
       <nav className="fixed top-0 left-0 w-full bg-white dark:bg-gray-800 shadow-md z-40 transition-shadow duration-300">
         <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row gap-4 items-center">
@@ -385,7 +424,7 @@ const NewsPage = () => {
             <input
               type="text"
               placeholder="Tìm kiếm tin tức..."
-              className="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -395,7 +434,7 @@ const NewsPage = () => {
             />
           </div>
           <select
-            className="px-4 py-2 rounded-full border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            className="px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
@@ -405,12 +444,12 @@ const NewsPage = () => {
           </select>
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-full"
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           >
             {darkMode ? "Sáng" : "Tối"}
           </button>
           <select
-            className="px-4 py-2 rounded-full border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            className="px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
             value={fontSize}
             onChange={(e) => setFontSize(e.target.value)}
           >
@@ -422,14 +461,14 @@ const NewsPage = () => {
             <FiGrid
               className={`cursor-pointer ${
                 viewMode === "grid" ? "text-red-500" : ""
-              }`}
+              } hover:text-red-500 transition-colors`}
               size={20}
               onClick={() => setViewMode("grid")}
             />
             <FiList
               className={`cursor-pointer ${
                 viewMode === "list" ? "text-red-500" : ""
-              }`}
+              } hover:text-red-500 transition-colors`}
               size={20}
               onClick={() => setViewMode("list")}
             />
@@ -438,208 +477,254 @@ const NewsPage = () => {
       </nav>
 
       <div className="container mx-auto px-4 pt-24 pb-8">
-        <div className="flex flex-wrap gap-2 mb-6">
-          {categories.map((category) => (
-            <button
-              key={category}
-              className={`px-4 py-2 rounded-full transition-colors duration-200 ${
-                selectedCategory === category
-                  ? "bg-red-500 text-white"
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
-              }`}
-              onClick={() => {
-                setSelectedCategory(category);
-                setCurrentPage(1);
-              }}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-
-        {isLoading ? (
-          <div className="text-center py-10">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
-            <p className="mt-2 dark:text-white">Đang tải tin tức...</p>
-          </div>
-        ) : (
-          <div
-            className={
-              viewMode === "grid"
-                ? "grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                : "flex flex-col gap-6"
-            }
-          >
-            {paginatedNews.map((news) => (
-              <div
-                key={news.id}
-                className="group bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 animate-fadeIn"
-                onClick={() => handleNewsClick(news)}
-              >
-                <img
-                  src={news.image}
-                  alt={news.title}
-                  className="w-full h-48 object-cover rounded-lg mb-4"
-                  loading="lazy"
-                />
-                <h3
-                  className={`text-xl font-semibold text-gray-800 dark:text-white ${fontSize}`}
-                >
-                  {news.title}
-                </h3>
-                <p
-                  className={`text-gray-600 dark:text-gray-300 mt-2 ${fontSize}`}
-                >
-                  {news.content.slice(0, 100)}...
-                </p>
-                <div className="flex justify-between items-center mt-4">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {news.date} | <FiClock className="inline mr-1" />{" "}
-                    {getReadingTime(news.wordCount)} phút
-                  </span>
-                  <div className="flex space-x-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <FiShare2
-                      className="cursor-pointer hover:text-red-500"
-                      size={20}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleShare(news, "copy");
-                      }}
-                    />
-                    <FiStar
-                      className={`cursor-pointer ${
-                        savedNews.includes(news.id)
-                          ? "text-yellow-500"
-                          : "hover:text-yellow-500"
-                      }`}
-                      size={20}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSave(news);
-                      }}
-                    />
-                    <FiMessageSquare
-                      className="cursor-pointer hover:text-blue-500"
-                      size={20}
-                    />
-                    <FiHeart
-                      className="cursor-pointer hover:text-red-500"
-                      size={20}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleHeart(news.id);
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  {hearts[news.id] || 0} lượt thả tim |{" "}
-                  {(comments[news.id] || []).length} bình luận
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {filteredNews.length > 0 && totalPages > 1 && (
-          <div className="flex justify-center mt-6 gap-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
-            >
-              Trang trước
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i}
-                className={`px-4 py-2 rounded-full transition-colors ${
-                  currentPage === i + 1
-                    ? "bg-red-500 text-white"
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
-                }`}
-                onClick={() => setCurrentPage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
-            >
-              Trang sau
-            </button>
-          </div>
-        )}
-
-        <div className="mt-8 bg-gray-100 dark:bg-gray-700 p-6 rounded-lg">
-          <h3 className="text-xl font-semibold dark:text-white mb-4">
-            Lịch sử đọc
-          </h3>
-          {readHistory.length > 0 ? (
-            <ul className="list-disc pl-5">
-              {readHistory.map((id) => {
-                const news = newsData.find((n) => n.id === id);
-                return news ? (
-                  <li
-                    key={id}
-                    className="text-blue-500 hover:underline cursor-pointer"
-                    onClick={() => setSelectedNews(news)}
-                  >
-                    {news.title}
-                  </li>
-                ) : null;
-              })}
-            </ul>
-          ) : (
-            <p className="text-gray-600 dark:text-gray-300">
-              Chưa có tin tức nào được đọc.
-            </p>
-          )}
-        </div>
-
-        <form
-          onSubmit={handleSubscribe}
-          className="mt-8 bg-gray-100 dark:bg-gray-700 p-6 rounded-lg text-center"
-        >
-          <h3 className="text-xl font-semibold dark:text-white">
-            Đăng ký nhận tin tức
-          </h3>
-          <input
-            type="email"
-            placeholder="Nhập email của bạn..."
-            className="mt-4 px-4 py-2 w-full max-w-md rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
+        {selectedNews ? (
+          <NewsDetail
+            news={selectedNews}
+            onBack={() => setSelectedNews(null)}
           />
-          <button className="mt-4 px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
-            Đăng ký
-          </button>
-        </form>
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  className={`px-4 py-2 rounded-full transition-colors duration-200 ${
+                    selectedCategory === category
+                      ? "bg-red-500 text-white"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  }`}
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-10">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
+                <p className="mt-2 dark:text-white">Đang tải tin tức...</p>
+              </div>
+            ) : (
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                    : "flex flex-col gap-6"
+                }
+              >
+                {paginatedNews.map((news) => (
+                  <div
+                    key={news.id}
+                    className="group bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                    onClick={() => handleNewsClick(news)}
+                  >
+                    <img
+                      src={news.image}
+                      alt={news.title}
+                      className="w-full h-48 object-cover rounded-lg mb-4"
+                      loading="lazy"
+                    />
+                    <h3
+                      className={`text-xl font-semibold text-gray-800 dark:text-white ${fontSize}`}
+                    >
+                      {news.title}
+                    </h3>
+                    <p
+                      className={`text-gray-600 dark:text-gray-300 mt-2 ${fontSize}`}
+                    >
+                      {news.content.slice(0, 100)}...
+                    </p>
+                    <div className="flex justify-between items-center mt-4">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {news.date} | <FiClock className="ml-1 mr-1" />{" "}
+                        {getReadingTime(news.wordCount)} phút
+                      </span>
+                      <div className="flex space-x-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <FiShare2
+                          className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors"
+                          size={20}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShare(news, "copy");
+                          }}
+                        />
+                        <FiStar
+                          className={`cursor-pointer ${
+                            savedNews.includes(news.id)
+                              ? "text-yellow-500"
+                              : "text-gray-500 dark:text-gray-400 hover:text-yellow-500"
+                          } transition-colors`}
+                          size={20}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSave(news);
+                          }}
+                        />
+                        <FiMessageSquare
+                          className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-blue-500 transition-colors"
+                          size={20}
+                        />
+                        <FiHeart
+                          className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors"
+                          size={20}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleHeart(news.id);
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                      {hearts[news.id] || 0} lượt thả tim |{" "}
+                      {(comments[news.id] || []).length} bình luận
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {filteredNews.length > 0 && totalPages > 1 && (
+              <div className="flex justify-center mt-6 gap-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                >
+                  Trang trước
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    className={`px-4 py-2 rounded-full transition-colors ${
+                      currentPage === i + 1
+                        ? "bg-red-500 text-white"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    }`}
+                    onClick={() => setCurrentPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                >
+                  Trang sau
+                </button>
+              </div>
+            )}
+
+            <div className="mt-8 bg-gray-100 dark:bg-gray-800 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold dark:text-white mb-4">
+                Lịch sử đọc
+              </h3>
+              {readHistory.length > 0 ? (
+                <ul className="list-disc pl-5 space-y-2">
+                  {readHistory.map((id) => {
+                    const news = newsData.find((n) => n.id === id);
+                    return news ? (
+                      <li
+                        key={id}
+                        className="text-blue-500 hover:underline cursor-pointer transition-colors"
+                        onClick={() => setSelectedNews(news)}
+                      >
+                        {news.title}
+                      </li>
+                    ) : null;
+                  })}
+                </ul>
+              ) : (
+                <p className="text-gray-600 dark:text-gray-300">
+                  Chưa có tin tức nào được đọc.
+                </p>
+              )}
+            </div>
+
+            <form
+              onSubmit={handleSubscribe}
+              className="mt-8 bg-gray-100 dark:bg-gray-800 p-6 rounded-lg text-center"
+            >
+              <h3 className="text-xl font-semibold dark:text-white">
+                Đăng ký nhận tin tức
+              </h3>
+              <input
+                type="email"
+                placeholder="Nhập email của bạn..."
+                className="mt-4 px-4 py-2 w-full max-w-md rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
+                required
+              />
+              <button
+                type="submit"
+                className="mt-4 px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+              >
+                Đăng ký
+              </button>
+            </form>
+          </>
+        )}
       </div>
 
-      {selectedNews && (
-        <NewsDetail news={selectedNews} onClose={() => setSelectedNews(null)} />
-      )}
-
-      {/* Chatbot đơn giản */}
-      <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
-        <p className="font-semibold dark:text-white">Chatbot</p>
-        <p className="text-gray-600 dark:text-gray-300">
-          Hỏi tôi bất cứ điều gì!
-        </p>
-        <input
-          type="text"
-          placeholder="Nhập câu hỏi..."
-          className="mt-2 px-2 py-1 w-full rounded border dark:bg-gray-700 dark:text-white"
-          onKeyPress={(e) => {
-            if (e.key === "Enter") {
-              toast.info("Tôi là chatbot, đang trả lời: Xin chào!");
-            }
-          }}
-        />
+      {/* Restyled Chatbot Section */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {/* Logo-only view when chatbot is closed */}
+        {!isChatbotOpen ? (
+          <div
+            className="bg-gradient-to-br from-red-500 to-pink-500 p-4 rounded-full shadow-lg cursor-pointer hover:shadow-xl hover:scale-110 transition-all duration-300 animate-pulse-slow"
+            onClick={() => setIsChatbotOpen(true)}
+            aria-label="Mở chatbot"
+          >
+            <FiMessageSquare className="text-white" size={24} />
+          </div>
+        ) : (
+          /* Full chat interface when chatbot is open */
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-80 max-h-[400px] flex flex-col overflow-hidden transition-all duration-300 animate-slideIn">
+            {/* Chatbot Header */}
+            <div className="bg-gradient-to-r from-red-500 to-pink-500 p-4 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <FiMessageSquare className="text-white" size={20} />
+                <h3 className="text-sm font-semibold text-white">Chatbot</h3>
+              </div>
+              <button
+                onClick={() => setIsChatbotOpen(false)}
+                className="text-white hover:text-gray-200 transition-colors"
+                aria-label="Đóng chatbot"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+            {/* Chatbot Body */}
+            <div className="p-4 flex-1 overflow-y-auto">
+              <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
+                Hỏi tôi bất cứ điều gì! Tôi ở đây để giúp bạn. 😊
+              </p>
+              <div className="text-gray-500 dark:text-gray-400 text-sm italic">
+                Bắt đầu cuộc trò chuyện...
+              </div>
+            </div>
+            {/* Chatbot Input */}
+            <div className="border-t border-gray-200 dark:border-gray-700 p-3">
+              <input
+                type="text"
+                placeholder="Nhập câu hỏi..."
+                className="w-full px-3 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-200"
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    toast.info("Tôi là chatbot, đang trả lời: Xin chào!");
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
