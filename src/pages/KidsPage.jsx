@@ -6,7 +6,7 @@ import {
   FaTimes,
   FaHeart,
   FaFilter,
-} from "react-icons/fa"; // Added FaFilter for the toggle icon
+} from "react-icons/fa";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
@@ -32,7 +32,6 @@ const KidsPage = () => {
   const productsPerPage = 8;
 
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState(null);
@@ -42,8 +41,6 @@ const KidsPage = () => {
   const [wishlist, setWishlist] = useState(
     JSON.parse(localStorage.getItem("wishlist")) || []
   );
-
-  // State to control the visibility of the filter section
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -107,30 +104,30 @@ const KidsPage = () => {
     setSelectedProduct(product);
     setQuantity(1);
     setSelectedColor(product.colors[0] || "");
-    setSelectedSize(null);
+    setSelectedSize(product.sizes[0] || null);
   };
 
   const closePopup = () => setSelectedProduct(null);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (product = selectedProduct) => {
     if (!selectedColor || !selectedSize) {
       alert("Vui lòng chọn màu sắc và kích thước!");
       return;
     }
-    if (quantity > selectedProduct.stock) {
+    if (quantity > product.stock) {
       alert("Số lượng vượt quá tồn kho!");
       return;
     }
 
     const newItem = {
-      id: selectedProduct._id,
-      name: selectedProduct.name,
+      id: product._id,
+      name: product.name,
       color: selectedColor,
       size: selectedSize,
       quantity,
-      price: selectedProduct.price,
-      image: selectedProduct.img,
-      stock: selectedProduct.stock,
+      price: product.price,
+      image: product.img,
+      stock: product.stock,
     };
 
     addToCart(newItem);
@@ -155,16 +152,16 @@ const KidsPage = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <Helmet>
-        <title>Men's Shoes</title>
+      {/* <Helmet>
+        <title>Women's shoes</title>
         <meta
           name="description"
           content="Explore our collection of men's shoes"
         />
-      </Helmet>
+      </Helmet> */}
 
       <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-        Men's Shoes
+        Children's shoes
       </h2>
 
       {/* Search Bar and Filter Toggle Button */}
@@ -279,7 +276,7 @@ const KidsPage = () => {
       </div>
 
       {cartNotification && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in-0 duration-300">
           Added to cart successfully!
           <button
             onClick={() => navigate("/cart")}
@@ -318,11 +315,11 @@ const KidsPage = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setQuickViewProduct(product);
+                    openPopup(product);
                   }}
                   className="absolute bottom-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full hover:bg-blue-600 transition duration-200"
                 >
-                  Quick View
+                  View Details
                 </button>
                 <button
                   onClick={(e) => {
@@ -386,49 +383,9 @@ const KidsPage = () => {
         </div>
       )}
 
-      {quickViewProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-40">
-          <div className="bg-white p-4 rounded-lg max-w-sm">
-            <img
-              src={quickViewProduct.img}
-              alt={quickViewProduct.name}
-              className="w-full h-40 object-cover rounded-lg mb-2"
-            />
-            <h3 className="text-lg font-semibold">{quickViewProduct.name}</h3>
-            <p className="text-red-600 font-bold">
-              ${quickViewProduct.price.toLocaleString()}
-            </p>
-            <div className="flex gap-2 mt-2">
-              {quickViewProduct.colors.map((color) => (
-                <div
-                  key={color}
-                  className="w-6 h-6 rounded-full"
-                  style={{ backgroundColor: colorMap[color] || "#ccc" }}
-                />
-              ))}
-            </div>
-            <button
-              onClick={() => setQuickViewProduct(null)}
-              className="mt-2 text-gray-500 hover:text-gray-800"
-            >
-              Close
-            </button>
-            <button
-              onClick={() => {
-                setQuickViewProduct(null);
-                openPopup(quickViewProduct);
-              }}
-              className="mt-2 ml-2 bg-blue-500 text-white px-3 py-1 rounded-full"
-            >
-              View Details
-            </button>
-          </div>
-        </div>
-      )}
-
       {selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
-          <div className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6 relative">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 transition-opacity duration-300 ease-in-out">
+          <div className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6 relative animate-in fade-in-0 slide-in-from-bottom-10 duration-300">
             <button
               onClick={closePopup}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition duration-200"
@@ -448,7 +405,9 @@ const KidsPage = () => {
             <p className="text-red-600 font-bold text-xl mb-3">
               ${selectedProduct.price.toLocaleString()}
             </p>
-            <p className="text-gray-600 mb-4">{selectedProduct.description}</p>
+            <p className="text-gray-600 mb-4 text-base leading-relaxed">
+              {selectedProduct.description}
+            </p>
 
             <div className="mb-4">
               <span className="font-semibold text-gray-700">Stock: </span>
@@ -503,7 +462,7 @@ const KidsPage = () => {
             <div className="mb-6 flex items-center gap-3">
               <button
                 onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
-                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-200"
+                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-200 disabled:opacity-50"
                 disabled={selectedProduct.stock === 0}
               >
                 <FaMinus />
@@ -517,7 +476,7 @@ const KidsPage = () => {
                     prev < selectedProduct.stock ? prev + 1 : prev
                   )
                 }
-                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-200"
+                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-200 disabled:opacity-50"
                 disabled={
                   selectedProduct.stock === 0 ||
                   quantity >= selectedProduct.stock
@@ -528,7 +487,7 @@ const KidsPage = () => {
             </div>
 
             <button
-              onClick={handleAddToCart}
+              onClick={() => handleAddToCart(selectedProduct)}
               className={`w-full py-3 rounded-lg font-semibold transition duration-200 ${
                 selectedProduct.stock > 0
                   ? "bg-blue-600 text-white hover:bg-blue-700"
@@ -546,7 +505,7 @@ const KidsPage = () => {
                     "You will be notified when this product is back in stock!"
                   )
                 }
-                className="w-full py-3 bg-yellow-500 text-white rounded-lg mt-2"
+                className="w-full py-3 bg-yellow-500 text-white rounded-lg mt-2 hover:bg-yellow-600 transition duration-200"
               >
                 Notify Me When Available
               </button>
@@ -554,7 +513,7 @@ const KidsPage = () => {
 
             <div className="mt-4">
               <h4 className="font-semibold text-gray-700">Related Products</h4>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 mt-2">
                 {products
                   .filter((p) => p._id !== selectedProduct._id)
                   .slice(0, 3)
@@ -563,7 +522,7 @@ const KidsPage = () => {
                       key={product._id}
                       src={product.img}
                       alt={product.name}
-                      className="w-full h-20 object-cover rounded-lg cursor-pointer"
+                      className="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition duration-200"
                       onClick={() => openPopup(product)}
                     />
                   ))}

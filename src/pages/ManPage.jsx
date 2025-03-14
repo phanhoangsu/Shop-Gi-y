@@ -6,15 +6,10 @@ import {
   FaTimes,
   FaHeart,
   FaFilter,
-  FaEye,
-  FaStar,
-  FaShareAlt,
 } from "react-icons/fa";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import Zoom from "react-medium-image-zoom";
-import "react-medium-image-zoom/dist/styles.css";
 
 const colorMap = {
   đen: "#000000",
@@ -37,7 +32,6 @@ const ManPage = () => {
   const productsPerPage = 8;
 
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState(null);
@@ -47,7 +41,6 @@ const ManPage = () => {
   const [wishlist, setWishlist] = useState(
     JSON.parse(localStorage.getItem("wishlist")) || []
   );
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -111,30 +104,30 @@ const ManPage = () => {
     setSelectedProduct(product);
     setQuantity(1);
     setSelectedColor(product.colors[0] || "");
-    setSelectedSize(null);
+    setSelectedSize(product.sizes[0] || null);
   };
 
   const closePopup = () => setSelectedProduct(null);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (product = selectedProduct) => {
     if (!selectedColor || !selectedSize) {
       alert("Vui lòng chọn màu sắc và kích thước!");
       return;
     }
-    if (quantity > selectedProduct.stock) {
+    if (quantity > product.stock) {
       alert("Số lượng vượt quá tồn kho!");
       return;
     }
 
     const newItem = {
-      id: selectedProduct._id,
-      name: selectedProduct.name,
+      id: product._id,
+      name: product.name,
       color: selectedColor,
       size: selectedSize,
       quantity,
-      price: selectedProduct.price,
-      image: selectedProduct.img,
-      stock: selectedProduct.stock,
+      price: product.price,
+      image: product.img,
+      stock: product.stock,
     };
 
     addToCart(newItem);
@@ -160,7 +153,7 @@ const ManPage = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <Helmet>
-        <title>Men's Shoes</title>
+        <title>Women's shoes</title>
         <meta
           name="description"
           content="Explore our collection of men's shoes"
@@ -283,7 +276,7 @@ const ManPage = () => {
       </div>
 
       {cartNotification && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in-0 duration-300">
           Added to cart successfully!
           <button
             onClick={() => navigate("/cart")}
@@ -322,11 +315,11 @@ const ManPage = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setQuickViewProduct(product);
+                    openPopup(product);
                   }}
                   className="absolute bottom-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full hover:bg-blue-600 transition duration-200"
                 >
-                  Quick View
+                  View Details
                 </button>
                 <button
                   onClick={(e) => {
@@ -390,78 +383,9 @@ const ManPage = () => {
         </div>
       )}
 
-      {quickViewProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-40">
-          <div className="bg-white p-4 rounded-lg max-w-sm">
-            <div className="relative">
-              <Zoom>
-                <img
-                  src={quickViewProduct.images[currentImageIndex]}
-                  alt={quickViewProduct.name}
-                  className="w-full h-40 object-cover rounded-lg mb-2"
-                />
-              </Zoom>
-              <button
-                onClick={() =>
-                  setCurrentImageIndex((prev) =>
-                    prev > 0 ? prev - 1 : quickViewProduct.images.length - 1
-                  )
-                }
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full"
-              >
-                &lt;
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentImageIndex((prev) =>
-                    prev < quickViewProduct.images.length - 1 ? prev + 1 : 0
-                  )
-                }
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full"
-              >
-                &gt;
-              </button>
-            </div>
-            <h3 className="text-lg font-semibold">{quickViewProduct.name}</h3>
-            <p className="text-red-600 font-bold">
-              ${quickViewProduct.price.toLocaleString()}
-            </p>
-            <div className="flex gap-2 mt-2">
-              {quickViewProduct.colors.map((color) => (
-                <div
-                  key={color}
-                  className="w-6 h-6 rounded-full"
-                  style={{ backgroundColor: colorMap[color] || "#ccc" }}
-                />
-              ))}
-            </div>
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => setQuickViewProduct(null)}
-                className="mt-2 text-gray-500 hover:text-gray-800 transition duration-200 ease-in-out transform hover:scale-110"
-                title="Close"
-              >
-                <FaTimes size={18} />
-              </button>
-              <button
-                onClick={() => {
-                  setQuickViewProduct(null);
-                  openPopup(quickViewProduct);
-                }}
-                className="mt-2 ml-2 bg-blue-500 text-white px-3 py-1 rounded-full hover:bg-blue-600 transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2"
-                title="View Details"
-              >
-                <FaEye size={16} />
-                <span>View Details</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
-          <div className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6 relative">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 transition-opacity duration-300 ease-in-out">
+          <div className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6 relative animate-in fade-in-0 slide-in-from-bottom-10 duration-300">
             <button
               onClick={closePopup}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition duration-200"
@@ -481,7 +405,9 @@ const ManPage = () => {
             <p className="text-red-600 font-bold text-xl mb-3">
               ${selectedProduct.price.toLocaleString()}
             </p>
-            <p className="text-gray-600 mb-4">{selectedProduct.description}</p>
+            <p className="text-gray-600 mb-4 text-base leading-relaxed">
+              {selectedProduct.description}
+            </p>
 
             <div className="mb-4">
               <span className="font-semibold text-gray-700">Stock: </span>
@@ -536,7 +462,7 @@ const ManPage = () => {
             <div className="mb-6 flex items-center gap-3">
               <button
                 onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
-                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-200"
+                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-200 disabled:opacity-50"
                 disabled={selectedProduct.stock === 0}
               >
                 <FaMinus />
@@ -550,7 +476,7 @@ const ManPage = () => {
                     prev < selectedProduct.stock ? prev + 1 : prev
                   )
                 }
-                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-200"
+                className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition duration-200 disabled:opacity-50"
                 disabled={
                   selectedProduct.stock === 0 ||
                   quantity >= selectedProduct.stock
@@ -561,7 +487,7 @@ const ManPage = () => {
             </div>
 
             <button
-              onClick={handleAddToCart}
+              onClick={() => handleAddToCart(selectedProduct)}
               className={`w-full py-3 rounded-lg font-semibold transition duration-200 ${
                 selectedProduct.stock > 0
                   ? "bg-blue-600 text-white hover:bg-blue-700"
@@ -579,7 +505,7 @@ const ManPage = () => {
                     "You will be notified when this product is back in stock!"
                   )
                 }
-                className="w-full py-3 bg-yellow-500 text-white rounded-lg mt-2"
+                className="w-full py-3 bg-yellow-500 text-white rounded-lg mt-2 hover:bg-yellow-600 transition duration-200"
               >
                 Notify Me When Available
               </button>
@@ -587,7 +513,7 @@ const ManPage = () => {
 
             <div className="mt-4">
               <h4 className="font-semibold text-gray-700">Related Products</h4>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 mt-2">
                 {products
                   .filter((p) => p._id !== selectedProduct._id)
                   .slice(0, 3)
@@ -596,7 +522,7 @@ const ManPage = () => {
                       key={product._id}
                       src={product.img}
                       alt={product.name}
-                      className="w-full h-20 object-cover rounded-lg cursor-pointer"
+                      className="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition duration-200"
                       onClick={() => openPopup(product)}
                     />
                   ))}

@@ -12,6 +12,7 @@ import NewsPage from "./pages/NewsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import WomenPage from "./pages/WomenPage";
 import RegisterPage from "./pages/RegisterPage";
+import Admin from "./pages/Admin";
 
 function App() {
   return (
@@ -26,11 +27,12 @@ function App() {
 
         <Route path="/cart" element={<CartPage />} />
 
-        {/* <Route path="/login" element={<LoginPage />} /> */}
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<RegisterPage />} />
         <Route path="/detail" element={<DetailPage />} />
 
         <Route path="/news" element={<NewsPage />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </CartProvider>

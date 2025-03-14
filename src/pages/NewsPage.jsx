@@ -142,8 +142,7 @@ const NewsPage = () => {
     name: "Người dùng ẩn danh",
   });
   const [showPopup, setShowPopup] = useState(true);
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
-  const itemsPerPage = 2;
+  const itemsPerPage = 6;
 
   const categories = [
     "Tất cả",
@@ -230,7 +229,7 @@ const NewsPage = () => {
       ...prev,
       [newsId]: (prev[newsId] || 0) + 1,
     }));
-    toast.success("Đã thả tim!");
+    // Không hiển thị thông báo "Đã thả tim!"
   };
 
   const handleComment = (newsId, commentText) => {
@@ -305,7 +304,7 @@ const NewsPage = () => {
         </p>
         <div className="mt-4 flex items-center gap-4">
           <FiHeart
-            className="cursor-pointer text-red-500 hover:text-red-600 transition-colors"
+            className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-600 transition-colors"
             size={20}
             onClick={() => handleHeart(news.id)}
           />
@@ -412,7 +411,7 @@ const NewsPage = () => {
   return (
     <div
       className={`min-h-screen ${
-        darkMode ? "dark bg-gray-900 text-white" : "bg-gray-50"
+        darkMode ? "dark bg-gray-900" : "bg-gray-50"
       } pt-16`}
     >
       <ToastContainer position="top-right" autoClose={3000} />
@@ -569,7 +568,7 @@ const NewsPage = () => {
                           size={20}
                         />
                         <FiHeart
-                          className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors"
+                          className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-600 transition-colors"
                           size={20}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -670,60 +669,6 @@ const NewsPage = () => {
               </button>
             </form>
           </>
-        )}
-      </div>
-
-      {/* Restyled Chatbot Section */}
-      <div className="fixed bottom-6 right-6 z-50">
-        {/* Logo-only view when chatbot is closed */}
-        {!isChatbotOpen ? (
-          <div
-            className="bg-gradient-to-br from-red-500 to-pink-500 p-4 rounded-full shadow-lg cursor-pointer hover:shadow-xl hover:scale-110 transition-all duration-300 animate-pulse-slow"
-            onClick={() => setIsChatbotOpen(true)}
-            aria-label="Mở chatbot"
-          >
-            <FiMessageSquare className="text-white" size={24} />
-          </div>
-        ) : (
-          /* Full chat interface when chatbot is open */
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-80 max-h-[400px] flex flex-col overflow-hidden transition-all duration-300 animate-slideIn">
-            {/* Chatbot Header */}
-            <div className="bg-gradient-to-r from-red-500 to-pink-500 p-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <FiMessageSquare className="text-white" size={20} />
-                <h3 className="text-sm font-semibold text-white">Chatbot</h3>
-              </div>
-              <button
-                onClick={() => setIsChatbotOpen(false)}
-                className="text-white hover:text-gray-200 transition-colors"
-                aria-label="Đóng chatbot"
-              >
-                <FiX size={20} />
-              </button>
-            </div>
-            {/* Chatbot Body */}
-            <div className="p-4 flex-1 overflow-y-auto">
-              <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
-                Hỏi tôi bất cứ điều gì! Tôi ở đây để giúp bạn. 😊
-              </p>
-              <div className="text-gray-500 dark:text-gray-400 text-sm italic">
-                Bắt đầu cuộc trò chuyện...
-              </div>
-            </div>
-            {/* Chatbot Input */}
-            <div className="border-t border-gray-200 dark:border-gray-700 p-3">
-              <input
-                type="text"
-                placeholder="Nhập câu hỏi..."
-                className="w-full px-3 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-200"
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    toast.info("Tôi là chatbot, đang trả lời: Xin chào!");
-                  }
-                }}
-              />
-            </div>
-          </div>
         )}
       </div>
     </div>

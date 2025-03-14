@@ -1,27 +1,38 @@
 import { Link } from "react-router-dom";
+import { FiHome, FiArrowLeft, FiSearch } from "react-icons/fi";
+import "../compunents/NotFoundPage.css";
 
 const NotFoundPage = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
-      <div className="max-w-md text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mt-4">
-          404 - Page Not Found
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Oops! Trang bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.
+    <div className="not-found-container">
+      <div className="not-found-content">
+        <div className="error-image">
+          <img
+            src="https://res.cloudinary.com/dbpqjnu0o/image/upload/v1741955990/5340.jpg_wh860_le0isk.jpg"
+            alt="404 Error"
+            className="error-illustration"
+          />
+        </div>
+        <h1>404</h1>
+        <h2>Không tìm thấy trang</h2>
+        <p>
+          Xin lỗi, trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.
         </p>
-        <div className="mt-6 flex gap-3 justify-center">
-          <Link
-            to="/"
-            className="bg-blue-500 text-white px-5 py-2 rounded-lg hover:bg-blue-600 transition duration-300 shadow-md"
-          >
-            Về Trang Chủ
+        <div className="action-buttons">
+          <Link to="/" className="action-button home-button">
+            <FiHome className="icon" />
+            Về trang chủ
           </Link>
-          <Link
-            to="/list/man"
-            className="bg-gray-300 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-400 transition duration-300 shadow-md"
+          <button
+            onClick={() => window.history.back()}
+            className="action-button back-button"
           >
-            Xem Sản Phẩm
+            <FiArrowLeft className="icon" />
+            Quay lại
+          </button>
+          <Link to="/search" className="action-button search-button">
+            <FiSearch className="icon" />
+            Tìm kiếm
           </Link>
         </div>
       </div>
