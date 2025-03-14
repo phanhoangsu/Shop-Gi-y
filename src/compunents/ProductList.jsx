@@ -8,9 +8,9 @@ const ProductList = () => {
 
   // Dữ liệu hình ảnh
   const images = [
-    "https://res.cloudinary.com/dbpqjnu0o/image/upload/v1741347045/Right_Sidw-removebg-preview_ho6rwe.png",
+    "https://res.cloudinary.com/dbpqjnu0o/image/upload/v1741696031/o1cn01pejv7i1tcvg2rz2al1891072_xjfbmb.webp",
     "https://res.cloudinary.com/dbpqjnu0o/image/upload/v1741347043/Right_Sidw__1_-removebg-preview_s1gbp7.png",
-    "https://res.cloudinary.com/dbpqjnu0o/image/upload/v1741347043/pngwing_1-removebg-preview_hofj0t.png",
+    "https://res.cloudinary.com/dbpqjnu0o/image/upload/v1741677226/0a366cfc464a32b91233072ea103bc5b_ykefor.jpg",
   ];
 
   return (

@@ -708,7 +708,7 @@ const WomenPage = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <Helmet>
-        <title>Men's Shoes</title>
+        <title>Women's shoes</title>
         <meta
           name="description"
           content="Explore our collection of men's shoes"
