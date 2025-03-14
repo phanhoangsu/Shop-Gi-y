@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaSearch,
   FaPlus,
@@ -6,10 +6,12 @@ import {
   FaTimes,
   FaHeart,
   FaFilter,
+  FaSync,
 } from "react-icons/fa";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import useApi from "../hooks/useApi";
 
 const colorMap = {
   đen: "#000000",
@@ -21,6 +23,7 @@ const colorMap = {
 const ManPage = () => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  const { request } = useApi();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,6 +39,7 @@ const ManPage = () => {
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState(null);
   const [cartNotification, setCartNotification] = useState(false);
+  const [refreshNotification, setRefreshNotification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const [wishlist, setWishlist] = useState(
@@ -43,33 +47,56 @@ const ManPage = () => {
   );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(
-          "https://ngochieuwedding.io.vn/api/su/product?category=nam"
-        );
-        const data = await res.json();
-        setProducts(data.data);
-        setFilteredProducts(data.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProducts();
-  }, []);
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    try {
+      const res = await request(
+        "GET",
+        `/su/product?category=nam&_=${Date.now()}`
+      );
+      const fetchedProducts = Array.isArray(res) ? res : res.data || [];
+      console.log("Fetched products:", fetchedProducts);
+      setProducts(fetchedProducts);
+      setFilteredProducts(fetchedProducts);
+      setRefreshNotification(true);
+      setTimeout(() => setRefreshNotification(false), 2000);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
+    fetchProducts();
+    const interval = setInterval(() => {
+      fetchProducts();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleRefresh = () => {
+    fetchProducts();
+  };
+
+  useEffect(() => {
+    console.log("Search term:", searchTerm);
+    console.log("Price range:", priceRange);
+    console.log("Selected colors:", selectedColors);
+    console.log("Selected sizes:", selectedSizes);
+    console.log("Sort by:", sortBy);
+
     let filtered = [...products];
+    const originalCount = filtered.length;
+
     filtered = filtered.filter((product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     filtered = filtered.filter(
       (product) =>
-        product.price >= priceRange[0] && product.price <= priceRange[1]
+        product.price == null ||
+        product.price === undefined ||
+        (product.price >= priceRange[0] && product.price <= priceRange[1])
     );
     if (selectedColors.length > 0) {
       filtered = filtered.filter((product) =>
@@ -82,9 +109,18 @@ const ManPage = () => {
       );
     }
     if (sortBy === "price-asc") {
-      filtered.sort((a, b) => a.price - b.price);
+      filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
     } else if (sortBy === "price-desc") {
-      filtered.sort((a, b) => b.price - a.price);
+      filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+    }
+
+    console.log("Filtered products:", filtered);
+    if (originalCount > filtered.length) {
+      console.log(
+        `Có ${
+          originalCount - filtered.length
+        } sản phẩm bị lọc bỏ do không thỏa mãn điều kiện`
+      );
     }
     setFilteredProducts(filtered);
     setCurrentPage(1);
@@ -101,6 +137,7 @@ const ManPage = () => {
   };
 
   const openPopup = (product) => {
+    console.log("Opening popup for product:", product);
     setSelectedProduct(product);
     setQuantity(1);
     setSelectedColor(product.colors[0] || "");
@@ -147,13 +184,13 @@ const ManPage = () => {
   );
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  const uniqueColors = [...new Set(products.flatMap((p) => p.colors))];
-  const uniqueSizes = [...new Set(products.flatMap((p) => p.sizes))];
+  const uniqueColors = [...new Set(products.flatMap((p) => p.colors || []))];
+  const uniqueSizes = [...new Set(products.flatMap((p) => p.sizes || []))];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <Helmet>
-        <title>Women's shoes</title>
+        <title>Men's Shoes</title>
         <meta
           name="description"
           content="Explore our collection of men's shoes"
@@ -164,7 +201,6 @@ const ManPage = () => {
         Men's Shoes
       </h2>
 
-      {/* Search Bar and Filter Toggle Button */}
       <div className="mb-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="relative w-full max-w-lg">
           <input
@@ -176,16 +212,24 @@ const ManPage = () => {
           />
           <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
         </div>
-        <button
-          onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
-        >
-          <FaFilter />
-          <span>{isFilterOpen ? "Hide Filters" : "Show Filters"}</span>
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+          >
+            <FaFilter />
+            <span>{isFilterOpen ? "Hide Filters" : "Show Filters"}</span>
+          </button>
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200"
+          >
+            <FaSync />
+            <span>Làm mới</span>
+          </button>
+        </div>
       </div>
 
-      {/* Filter Section (Collapsible) */}
       <div
         className={`mb-8 bg-white p-4 rounded-lg shadow-md transition-all duration-300 ${
           isFilterOpen ? "block" : "hidden"
@@ -275,6 +319,12 @@ const ManPage = () => {
         </div>
       </div>
 
+      {refreshNotification && (
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg animate-in fade-in-0 duration-300">
+          Danh sách sản phẩm đã được cập nhật!
+        </div>
+      )}
+
       {cartNotification && (
         <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in-0 duration-300">
           Added to cart successfully!
@@ -305,8 +355,8 @@ const ManPage = () => {
             >
               <div className="relative overflow-hidden">
                 <img
-                  src={product.img}
-                  alt={product.name}
+                  src={product.img || "https://via.placeholder.com/150"}
+                  alt={product.name || "Product"}
                   className={`w-full h-56 object-cover rounded-lg mb-3 transition-transform duration-300 ${
                     hoveredProduct === product._id ? "scale-110" : ""
                   }`}
@@ -339,10 +389,11 @@ const ManPage = () => {
                 className="text-lg font-semibold text-gray-800 truncate"
                 onClick={() => openPopup(product)}
               >
-                {product.name}
+                {product.name || "Unknown Product"}
               </h3>
               <p className="text-red-600 font-bold text-xl">
-                ${product.price.toLocaleString()}
+                $
+                {product.price != null ? product.price.toLocaleString() : "N/A"}
               </p>
             </div>
           ))}
@@ -394,19 +445,22 @@ const ManPage = () => {
             </button>
 
             <img
-              src={selectedProduct.img}
-              alt={selectedProduct.name}
+              src={selectedProduct.img || "https://via.placeholder.com/150"}
+              alt={selectedProduct.name || "Product"}
               className="w-full h-64 object-cover rounded-lg mb-4"
             />
 
             <h3 className="text-2xl font-bold text-gray-800 mb-2">
-              {selectedProduct.name}
+              {selectedProduct.name || "Unknown Product"}
             </h3>
             <p className="text-red-600 font-bold text-xl mb-3">
-              ${selectedProduct.price.toLocaleString()}
+              $
+              {selectedProduct.price != null
+                ? selectedProduct.price.toLocaleString()
+                : "N/A"}
             </p>
             <p className="text-gray-600 mb-4 text-base leading-relaxed">
-              {selectedProduct.description}
+              {selectedProduct.description || "No description available."}
             </p>
 
             <div className="mb-4">
@@ -425,37 +479,45 @@ const ManPage = () => {
             <div className="mb-4">
               <span className="font-semibold text-gray-700">Color:</span>
               <div className="flex gap-3 mt-2">
-                {selectedProduct.colors.map((color) => (
-                  <div
-                    key={color}
-                    className={`w-10 h-10 rounded-full border-2 cursor-pointer ${
-                      selectedColor === color
-                        ? "border-blue-500 scale-110"
-                        : "border-gray-300"
-                    } transform transition-all duration-200`}
-                    style={{ backgroundColor: colorMap[color] || "#ccc" }}
-                    onClick={() => setSelectedColor(color)}
-                  />
-                ))}
+                {(selectedProduct.colors || []).length > 0 ? (
+                  selectedProduct.colors.map((color) => (
+                    <div
+                      key={color}
+                      className={`w-10 h-10 rounded-full border-2 cursor-pointer ${
+                        selectedColor === color
+                          ? "border-blue-500 scale-110"
+                          : "border-gray-300"
+                      } transform transition-all duration-200`}
+                      style={{ backgroundColor: colorMap[color] || "#ccc" }}
+                      onClick={() => setSelectedColor(color)}
+                    />
+                  ))
+                ) : (
+                  <span className="text-gray-500">No colors available</span>
+                )}
               </div>
             </div>
 
             <div className="mb-4">
               <span className="font-semibold text-gray-700">Size:</span>
               <div className="grid grid-cols-5 gap-2 mt-2">
-                {selectedProduct.sizes.map((size) => (
-                  <button
-                    key={size}
-                    className={`px-3 py-2 border rounded-lg font-medium ${
-                      selectedSize === size
-                        ? "bg-blue-500 text-white border-blue-500"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                    } transition duration-200`}
-                    onClick={() => setSelectedSize(size)}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {(selectedProduct.sizes || []).length > 0 ? (
+                  selectedProduct.sizes.map((size) => (
+                    <button
+                      key={size}
+                      className={`px-3 py-2 border rounded-lg font-medium ${
+                        selectedSize === size
+                          ? "bg-blue-500 text-white border-blue-500"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                      } transition duration-200`}
+                      onClick={() => setSelectedSize(size)}
+                    >
+                      {size}
+                    </button>
+                  ))
+                ) : (
+                  <span className="text-gray-500">No sizes available</span>
+                )}
               </div>
             </div>
 
@@ -520,8 +582,8 @@ const ManPage = () => {
                   .map((product) => (
                     <img
                       key={product._id}
-                      src={product.img}
-                      alt={product.name}
+                      src={product.img || "https://via.placeholder.com/150"}
+                      alt={product.name || "Product"}
                       className="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition duration-200"
                       onClick={() => openPopup(product)}
                     />
