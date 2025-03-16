@@ -1,13 +1,64 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaSync, FaTrash } from "react-icons/fa";
 import useApi from "../hooks/useApi";
+import ProductForm from "../components/ProductForm";
+import ProductList from "../components/ProductList";
+import Orders from "../components/Orders";
+import Customers from "../components/Customers";
+import Reports from "../components/Reports";
+import {
+  FaBox,
+  FaShoppingCart,
+  FaUsers,
+  FaChartBar,
+  FaCog,
+  FaTachometerAlt,
+  FaBars,
+  FaTimes,
+  FaSearch,
+  FaFilter,
+  FaDownload,
+  FaUpload,
+  FaTrash,
+  FaEdit,
+  FaSignOutAlt,
+} from "react-icons/fa";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const Admin = () => {
   const { request, loading, error } = useApi();
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [notification, setNotification] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [currentView, setCurrentView] = useState("dashboard");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({
+    category: "all",
+    priceRange: "all",
+    stock: "all",
+  });
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const availableSizes = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43];
+
+  // Mock data cho dashboard
+  const mockChartData = [
+    { name: "T1", revenue: 4000 },
+    { name: "T2", revenue: 3000 },
+    { name: "T3", revenue: 2000 },
+    { name: "T4", revenue: 2780 },
+    { name: "T5", revenue: 1890 },
+    { name: "T6", revenue: 2390 },
+    { name: "T7", revenue: 3490 },
+  ];
 
   const [formData, setFormData] = useState({
     _id: "",
@@ -16,13 +67,13 @@ const Admin = () => {
     stock: "",
     price: "",
     img: "",
+    images: [],
     product_by: "su",
     colors: [],
     description: "",
     sizes: [],
   });
 
-  const [selectedProducts, setSelectedProducts] = useState(new Set());
   const formDataRef = useRef(formData);
 
   useEffect(() => {
@@ -45,63 +96,41 @@ const Admin = () => {
       } else {
         console.warn("API returned invalid data format:", data);
         setProducts([]);
-        setNotification({
-          type: "error",
-          message: "Dữ liệu sản phẩm không hợp lệ. Vui lòng kiểm tra API!",
-        });
+        showNotification("error", "Dữ liệu sản phẩm không hợp lệ!");
       }
     } catch (err) {
       console.error("Error fetching products:", err);
-      setNotification({
-        type: "error",
-        message: "Lỗi khi tải danh sách sản phẩm: " + err.message,
-      });
+      showNotification("error", "Lỗi khi tải danh sách sản phẩm!");
       setProducts([]);
     }
   };
 
+  const showNotification = (type, message) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => {
-      const updatedData = {
-        ...prev,
-        [name]:
-          name === "colors"
-            ? value
-                .split(",")
-                .map((item) => item.trim())
-                .filter(Boolean)
-            : value,
-      };
-      console.log("Updated formData:", updatedData);
-      return updatedData;
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        name === "colors"
+          ? value
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean)
+          : value,
+    }));
   };
 
   const handleSizeChange = (size) => {
-    setFormData((prev) => {
-      const newSizes = prev.sizes.includes(size)
+    setFormData((prev) => ({
+      ...prev,
+      sizes: prev.sizes.includes(size)
         ? prev.sizes.filter((s) => s !== size)
-        : [...prev.sizes, size].sort((a, b) => a - b);
-      const updatedData = { ...prev, sizes: newSizes };
-      console.log("Updated formData (sizes):", updatedData);
-      return updatedData;
-    });
-  };
-
-  const validateForm = () => {
-    if (!formData.name) return "Vui lòng nhập tên sản phẩm!";
-    if (!formData.price || isNaN(formData.price) || Number(formData.price) <= 0)
-      return "Vui lòng nhập giá sản phẩm hợp lệ (lớn hơn 0)!";
-    if (!formData.img) return "Vui lòng nhập URL hình ảnh!";
-    if (!formData.stock || isNaN(formData.stock) || Number(formData.stock) < 0)
-      return "Vui lòng nhập số lượng tồn kho hợp lệ (lớn hơn hoặc bằng 0)!";
-    if (!formData.description) return "Vui lòng nhập mô tả sản phẩm!";
-    if (formData.colors.length === 0)
-      return "Vui lòng nhập ít nhất một màu sắc!";
-    if (formData.sizes.length === 0)
-      return "Vui lòng chọn ít nhất một kích thước!";
-    return null;
+        : [...prev.sizes, size].sort((a, b) => a - b),
+    }));
   };
 
   const handleSubmit = async (action) => {
@@ -112,18 +141,13 @@ const Admin = () => {
       formDataRef.current
     );
     if (action === "update" && !formDataRef.current._id) {
-      setNotification({
-        type: "error",
-        message: "Vui lòng chọn sản phẩm để cập nhật!",
-      });
-      setTimeout(() => setNotification(null), 3000);
+      showNotification("error", "Vui lòng chọn sản phẩm để cập nhật!");
       return;
     }
 
     const validationError = validateForm();
     if (validationError && (action === "add" || action === "update")) {
-      setNotification({ type: "error", message: validationError });
-      setTimeout(() => setNotification(null), 3000);
+      showNotification("error", validationError);
       return;
     }
 
@@ -141,10 +165,7 @@ const Admin = () => {
             ...submitData,
             createdAt: Date.now(),
           });
-          setNotification({
-            type: "success",
-            message: "Thêm sản phẩm thành công!",
-          });
+          showNotification("success", "Thêm sản phẩm thành công!");
           break;
         case "update":
           await request(
@@ -152,20 +173,12 @@ const Admin = () => {
             `/su/product/${formDataRef.current._id}`,
             submitData
           );
-          setNotification({
-            type: "success",
-            message: "Cập nhật sản phẩm thành công!",
-          });
+          showNotification("success", "Cập nhật sản phẩm thành công!");
           break;
         case "delete":
           if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
             await request("DELETE", `/su/product/${formDataRef.current._id}`);
-            setNotification({
-              type: "success",
-              message: "Xóa sản phẩm thành công!",
-            });
-          } else {
-            return;
+            showNotification("success", "Xóa sản phẩm thành công!");
           }
           break;
         default:
@@ -175,12 +188,10 @@ const Admin = () => {
       handleReset();
     } catch (err) {
       console.error("Submit error:", err);
-      setNotification({
-        type: "error",
-        message: `Lỗi: ${err.message || "Không thể thực hiện hành động"}`,
-      });
-    } finally {
-      setTimeout(() => setNotification(null), 3000);
+      showNotification(
+        "error",
+        `Lỗi: ${err.message || "Không thể thực hiện hành động"}`
+      );
     }
   };
 
@@ -193,6 +204,7 @@ const Admin = () => {
       stock: String(product.stock || ""),
       price: String(product.price || ""),
       img: product.img || "",
+      images: product.images || [product.img].filter(Boolean),
       product_by: product.product_by || "su",
       colors: product.colors || [],
       description: product.description || "",
@@ -200,6 +212,7 @@ const Admin = () => {
     };
     setFormData(updatedFormData);
     console.log("formData after set:", updatedFormData);
+    setCurrentView("form");
   };
 
   const handleReset = () => {
@@ -210,6 +223,7 @@ const Admin = () => {
       stock: "",
       price: "",
       img: "",
+      images: [],
       product_by: "su",
       colors: [],
       description: "",
@@ -219,323 +233,358 @@ const Admin = () => {
     console.log("formData after reset:", resetData);
   };
 
-  const handleSelectProduct = (productId) => {
-    setSelectedProducts((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(productId)) {
-        newSet.delete(productId);
-      } else {
-        newSet.add(productId);
-      }
-      return newSet;
-    });
-  };
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      const allProductIds = filteredProducts.map((p) => p._id);
-      setSelectedProducts(new Set(allProductIds));
-    } else {
-      setSelectedProducts(new Set());
-    }
-  };
-
-  const handleDeleteSelected = async () => {
-    if (selectedProducts.size === 0) {
-      setNotification({
-        type: "error",
-        message: "Vui lòng chọn ít nhất một sản phẩm để xóa!",
-      });
-      setTimeout(() => setNotification(null), 3000);
+  const handleBulkAction = async (action) => {
+    if (selectedProducts.length === 0) {
+      showNotification("error", "Vui lòng chọn sản phẩm!");
       return;
     }
-    if (
-      window.confirm(
-        `Bạn có chắc chắn muốn xóa ${selectedProducts.size} sản phẩm?`
-      )
-    ) {
-      try {
-        const ids = Array.from(selectedProducts);
-        await request("POST", "/su/product/batch-delete", { ids });
-        setNotification({
-          type: "success",
-          message: `Đã xóa ${selectedProducts.size} sản phẩm thành công!`,
-        });
-        await fetchProducts();
-        setSelectedProducts(new Set());
-      } catch (err) {
-        console.error("Error deleting selected products:", err);
-        setNotification({
-          type: "error",
-          message: "Lỗi khi xóa sản phẩm: " + err.message,
-        });
-      } finally {
-        setTimeout(() => setNotification(null), 3000);
-      }
+
+    switch (action) {
+      case "delete":
+        if (
+          window.confirm(`Xóa ${selectedProducts.length} sản phẩm đã chọn?`)
+        ) {
+          try {
+            await Promise.all(
+              selectedProducts.map((id) =>
+                request("DELETE", `/su/product/${id}`)
+              )
+            );
+            showNotification("success", "Xóa sản phẩm thành công!");
+            setSelectedProducts([]);
+            await fetchProducts();
+          } catch (err) {
+            showNotification("error", "Lỗi khi xóa sản phẩm!");
+          }
+        }
+        break;
+      // Thêm các action khác ở đây
     }
   };
 
-  const filteredProducts =
-    selectedCategory === "all"
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
+  const filteredProducts = products
+    .filter((product) => {
+      if (filters.category !== "all" && product.category !== filters.category)
+        return false;
+      if (filters.stock === "low" && product.stock > 10) return false;
+      if (filters.stock === "out" && product.stock > 0) return false;
+      if (searchTerm) {
+        const search = searchTerm.toLowerCase();
+        return (
+          product.name.toLowerCase().includes(search) ||
+          product.description.toLowerCase().includes(search)
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // Thêm logic sắp xếp ở đây
+      return 0;
+    });
+
+  const renderDashboard = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-500">Tổng sản phẩm</p>
+            <h3 className="text-2xl font-bold text-gray-800">
+              {products.length}
+            </h3>
+          </div>
+          <div className="p-3 bg-blue-100 rounded-full">
+            <FaBox className="text-xl text-blue-600" />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-500">Đơn hàng mới</p>
+            <h3 className="text-2xl font-bold text-gray-800">25</h3>
+          </div>
+          <div className="p-3 bg-green-100 rounded-full">
+            <FaShoppingCart className="text-xl text-green-600" />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-500">Khách hàng</p>
+            <h3 className="text-2xl font-bold text-gray-800">1,245</h3>
+          </div>
+          <div className="p-3 bg-purple-100 rounded-full">
+            <FaUsers className="text-xl text-purple-600" />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-500">Doanh thu</p>
+            <h3 className="text-2xl font-bold text-gray-800">$13,245</h3>
+          </div>
+          <div className="p-3 bg-yellow-100 rounded-full">
+            <FaChartBar className="text-xl text-yellow-600" />
+          </div>
+        </div>
+      </div>
+
+      {/* Biểu đồ */}
+      <div className="col-span-1 md:col-span-2 lg:col-span-4 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          Biểu đồ doanh thu
+        </h3>
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={mockChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="#3B82F6"
+                activeDot={{ r: 8 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (currentView) {
+      case "dashboard":
+        return renderDashboard();
+      case "form":
+        return (
+          <ProductForm
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleSizeChange={handleSizeChange}
+            handleSubmit={handleSubmit}
+            handleReset={handleReset}
+            loading={loading}
+            availableSizes={availableSizes}
+          />
+        );
+      case "list":
+        return (
+          <ProductList
+            products={filteredProducts}
+            handleEdit={handleEdit}
+            handleDelete={(id) => {
+              setFormData(products.find((p) => p._id === id));
+              handleSubmit("delete");
+            }}
+            selectedProducts={selectedProducts}
+            setSelectedProducts={setSelectedProducts}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filters={filters}
+            setFilters={setFilters}
+            handleBulkAction={handleBulkAction}
+            setCurrentView={setCurrentView}
+          />
+        );
+      case "orders":
+        return <Orders />;
+      case "customers":
+        return <Customers />;
+      case "reports":
+        return <Reports />;
+      case "settings":
+        return (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold mb-4">Cài đặt hệ thống</h2>
+            {/* Thêm nội dung cài đặt ở đây */}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const validateForm = () => {
+    if (!formData.name) return "Vui lòng nhập tên sản phẩm!";
+    if (!formData.price || isNaN(formData.price) || Number(formData.price) <= 0)
+      return "Vui lòng nhập giá sản phẩm hợp lệ (lớn hơn 0)!";
+    if (!formData.img) return "Vui lòng nhập URL hình ảnh!";
+    if (!formData.stock || isNaN(formData.stock) || Number(formData.stock) < 0)
+      return "Vui lòng nhập số lượng tồn kho hợp lệ (lớn hơn hoặc bằng 0)!";
+    if (!formData.description) return "Vui lòng nhập mô tả sản phẩm!";
+    if (formData.colors.length === 0)
+      return "Vui lòng nhập ít nhất một màu sắc!";
+    if (formData.sizes.length === 0)
+      return "Vui lòng chọn ít nhất một kích thước!";
+    return null;
+  };
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Quản lý Sản phẩm
-      </h2>
-
-      {notification && (
-        <div
-          className={`fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg animate-in fade-in-0 duration-300 ${
-            notification.type === "success"
-              ? "bg-green-500 text-white"
-              : "bg-red-500 text-white"
-          }`}
-        >
-          {notification.message}
-        </div>
-      )}
-
-      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="nam">Nam</option>
-            <option value="nu">Nữ</option>
-            <option value="kids">Trẻ em</option>
-          </select>
-          <input
-            type="text"
-            name="name"
-            placeholder="Tên sản phẩm"
-            value={formData.name}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            type="number"
-            name="stock"
-            placeholder="Số lượng"
-            value={formData.stock}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div className="relative">
-            <input
-              type="number"
-              name="price"
-              placeholder="Giá ($)"
-              value={formData.price}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pl-8"
-            />
-            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500">
-              $
-            </span>
-          </div>
-          <input
-            type="text"
-            name="img"
-            placeholder="URL hình ảnh"
-            value={formData.img}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            type="text"
-            name="colors"
-            placeholder="Màu sắc (cách nhau bằng dấu phẩy)"
-            value={formData.colors.join(", ")}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div>
-            <label className="block text-gray-700 mb-2">Chọn kích cỡ:</label>
-            <div className="grid grid-cols-5 gap-2 max-h-24 overflow-y-auto border p-2 rounded-md">
-              {availableSizes.map((size) => (
-                <label key={size} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    value={size}
-                    checked={formData.sizes.includes(size)}
-                    onChange={() => handleSizeChange(size)}
-                    className="mr-2"
-                  />
-                  {size}
-                </label>
-              ))}
-            </div>
-            <div className="mt-2 text-gray-600">
-              <span className="font-semibold">Kích cỡ đã chọn: </span>
-              {formData.sizes.length > 0
-                ? formData.sizes.join(", ")
-                : "Chưa chọn kích cỡ"}
-            </div>
-          </div>
-          <textarea
-            name="description"
-            placeholder="Mô tả sản phẩm"
-            value={formData.description}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2"
-            rows="3"
-          />
-        </div>
-        <div className="mt-4 flex space-x-4">
+    <div className="min-h-screen bg-gray-100">
+      {/* Sidebar */}
+      <div
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h1 className="text-xl font-bold text-gray-800">Admin Dashboard</h1>
           <button
-            onClick={() => handleSubmit("add")}
-            disabled={loading}
-            className={`px-4 py-2 rounded-md text-white ${
-              loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-            }`}
+            onClick={() => setSidebarOpen(false)}
+            className="p-2 rounded-lg hover:bg-gray-100 lg:hidden"
           >
-            {loading ? "Đang thêm..." : "Thêm"}
-          </button>
-          <button
-            onClick={() => handleSubmit("update")}
-            disabled={loading || !formDataRef.current._id}
-            className={`px-4 py-2 rounded-md text-white ${
-              loading || !formDataRef.current._id
-                ? "bg-gray-400"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
-          >
-            {loading ? "Đang cập nhật..." : "Cập nhật"}
-          </button>
-          <button
-            onClick={() => handleSubmit("delete")}
-            disabled={loading || !formDataRef.current._id}
-            className={`px-4 py-2 rounded-md text-white ${
-              loading || !formDataRef.current._id
-                ? "bg-gray-400"
-                : "bg-red-600 hover:bg-red-700"
-            }`}
-          >
-            {loading ? "Đang xóa..." : "Xóa"}
-          </button>
-          <button
-            onClick={handleReset}
-            disabled={loading}
-            className={`px-4 py-2 rounded-md text-white ${
-              loading ? "bg-gray-400" : "bg-gray-600 hover:bg-gray-700"
-            }`}
-          >
-            Reset
+            <FaTimes className="text-gray-600" />
           </button>
         </div>
-      </div>
-
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Danh sách sản phẩm
-      </h2>
-      <div className="mb-4 flex items-center space-x-2">
-        <label className="text-gray-700">Lọc theo danh mục:</label>
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all">Tất cả</option>
-          <option value="nam">Nam</option>
-          <option value="nu">Nữ</option>
-          <option value="kids">Trẻ em</option>
-        </select>
-        <button
-          onClick={fetchProducts}
-          className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200"
-        >
-          <FaSync />
-          <span>Làm mới</span>
-        </button>
-        <button
-          onClick={handleDeleteSelected}
-          disabled={selectedProducts.size === 0 || loading}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-white ${
-            selectedProducts.size === 0 || loading
-              ? "bg-gray-400"
-              : "bg-red-600 hover:bg-red-700"
-          }`}
-        >
-          <FaTrash />
-          <span>{loading ? "Đang xóa..." : "Xóa chọn"}</span>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.length > 0 ? (
-          <>
-            <div className="col-span-full mb-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.size === filteredProducts.length}
-                  onChange={handleSelectAll}
-                  className="mr-2"
-                />
-                Chọn tất cả
-              </label>
-            </div>
-            {filteredProducts.map((product) => (
-              <div
-                key={product._id}
-                className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow relative"
+        <nav className="p-4">
+          <ul className="space-y-2">
+            <li>
+              <button
+                onClick={() => setCurrentView("dashboard")}
+                className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                  currentView === "dashboard"
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
               >
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.has(product._id)}
-                  onChange={() => handleSelectProduct(product._id)}
-                  className="absolute top-4 left-4"
-                />
-                <img
-                  src={product.img || "https://via.placeholder.com/150"}
-                  alt={product.name || "Product"}
-                  className="w-full h-48 object-cover rounded-md mb-4"
-                  onError={(e) => {
-                    e.target.src = "https://via.placeholder.com/150";
-                  }}
-                />
-                <p className="text-lg font-semibold text-gray-800">
-                  {product.name || "Unknown Product"}
-                </p>
-                <p className="text-gray-600">Danh mục: {product.category}</p>
-                <p className="text-gray-600">Giá: ${product.price || "N/A"}</p>
-                <p className="text-gray-600">
-                  Số lượng: {product.stock || "N/A"}
-                </p>
-                <p className="text-gray-600">
-                  Màu sắc: {(product.colors || []).join(", ")}
-                </p>
-                <p className="text-gray-600">
-                  Kích cỡ:{" "}
-                  {(product.sizes || []).sort((a, b) => a - b).join(", ")}
-                </p>
-                <button
-                  onClick={() => handleEdit(product)}
-                  className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
-                >
-                  Chỉnh sửa
-                </button>
-              </div>
-            ))}
-          </>
-        ) : (
-          <p className="text-center text-gray-500 text-lg col-span-3">
-            Không có sản phẩm nào trong danh mục này.
-          </p>
-        )}
+                <FaTachometerAlt className="mr-3" />
+                Dashboard
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => setCurrentView("list")}
+                className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                  currentView === "list"
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <FaBox className="mr-3" />
+                Sản phẩm
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => setCurrentView("orders")}
+                className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                  currentView === "orders"
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <FaShoppingCart className="mr-3" />
+                Đơn hàng
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => setCurrentView("customers")}
+                className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                  currentView === "customers"
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <FaUsers className="mr-3" />
+                Khách hàng
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => setCurrentView("reports")}
+                className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                  currentView === "reports"
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <FaChartBar className="mr-3" />
+                Báo cáo
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => setCurrentView("settings")}
+                className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                  currentView === "settings"
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <FaCog className="mr-3" />
+                Cài đặt
+              </button>
+            </li>
+          </ul>
+        </nav>
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+          <button
+            onClick={() => {
+              // Xử lý đăng xuất
+              console.log("Logging out...");
+            }}
+            className="w-full flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+          >
+            <FaSignOutAlt className="mr-3" />
+            Đăng xuất
+          </button>
+        </div>
       </div>
 
-      {error && (
-        <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-md">
-          {error}
-        </div>
-      )}
+      {/* Main content */}
+      <div
+        className={`transition-all duration-300 ${
+          sidebarOpen ? "ml-64" : "ml-0"
+        }`}
+      >
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200">
+          <div className="flex items-center justify-between px-4 py-3">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100"
+            >
+              <FaBars className="text-gray-600" />
+            </button>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">Admin</div>
+              <div className="relative">
+                <img
+                  src="https://via.placeholder.com/40"
+                  alt="Avatar"
+                  className="w-8 h-8 rounded-full"
+                />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="p-4">
+          {notification && (
+            <div
+              className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${
+                notification.type === "success"
+                  ? "bg-green-500 text-white"
+                  : "bg-red-500 text-white"
+              }`}
+            >
+              {notification.message}
+            </div>
+          )}
+          {renderContent()}
+        </main>
+      </div>
     </div>
   );
 };

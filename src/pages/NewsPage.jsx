@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FiSearch,
   FiShare2,
@@ -10,184 +10,930 @@ import {
   FiList,
   FiArrowLeft,
   FiX,
+  FiArrowUp,
+  FiBookmark,
+  FiHome,
+  FiShoppingCart,
+  FiPhone,
+  FiMonitor,
+  FiHeadphones,
+  FiGift,
+  FiSun,
+  FiMoon,
+  FiFacebook,
+  FiTwitter,
+  FiLink,
+  FiCalendar,
 } from "react-icons/fi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Helmet } from "react-helmet";
+import axios from "axios";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
-const newsData = [
-  {
-    id: 1,
-    category: "Sản phẩm mới",
-    tags: ["Giày thể thao"],
-    title: "Giới thiệu bộ sưu tập giày thể thao mùa hè 2024",
-    content:
-      "Chi tiết về bộ sưu tập giày thể thao mùa hè 2024 với thiết kế hiện đại và màu sắc nổi bật...",
-    date: "2025-03-10",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
-    wordCount: 200,
-    media: { type: "video", url: "https://example.com/video.mp4" },
-  },
-  {
-    id: 2,
-    category: "Khuyến mãi",
-    tags: ["Sale cuối mùa"],
-    title: "Sale cuối mùa giảm giá lên đến 50%",
-    content:
-      "Khuyến mãi lớn cuối mùa với nhiều sản phẩm giảm giá sâu, cơ hội không thể bỏ lỡ...",
-    date: "2025-03-11",
-    image: "https://images.unsplash.com/photo-1578985545068-9948d5b8592e",
-    wordCount: 150,
-  },
-  {
-    id: 3,
-    category: "Xu hướng thời trang",
-    tags: ["Màu sắc"],
-    title: "Xu hướng màu sắc hot nhất mùa hè này",
-    content:
-      "Khám phá những màu sắc nổi bật sẽ thống trị thời trang mùa hè 2024...",
-    date: "2025-03-12",
-    image: "https://images.unsplash.com/photo-1509631179647-0177331693ae",
-    wordCount: 180,
-  },
-  {
-    id: 4,
-    category: "Sản phẩm mới",
-    tags: ["Áo thun"],
-    title: "Ra mắt dòng áo thun phong cách tối giản 2025",
-    content:
-      "Dòng áo thun mới với thiết kế tối giản, phù hợp cho mọi dịp từ công sở đến dạo phố...",
-    date: "2025-03-09",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
-    wordCount: 220,
-  },
-  {
-    id: 5,
-    category: "Sự kiện",
-    tags: ["Triển lãm"],
-    title: "Triển lãm thời trang bền vững tại Hà Nội",
-    content:
-      "Sự kiện triển lãm giới thiệu các xu hướng thời trang bền vững và thân thiện với môi trường...",
-    date: "2025-03-08",
-    image: "https://images.unsplash.com/photo-1483985988355-0e6832e779c2",
-    wordCount: 190,
-  },
-  {
-    id: 6,
-    category: "Mẹo và Thủ Thuật",
-    tags: ["Phối đồ"],
-    title: "5 mẹo phối đồ mùa hè cực chất",
-    content:
-      "Học ngay cách phối đồ để luôn nổi bật trong những ngày nắng nóng của mùa hè...",
-    date: "2025-03-07",
-    image: "https://images.unsplash.com/photo-1525507119028-ed4c629203d3",
-    wordCount: 170,
-  },
-  {
-    id: 7,
-    category: "Khuyến mãi",
-    tags: ["Flash Sale"],
-    title: "Flash Sale 24h - Giảm giá toàn bộ sản phẩm",
-    content:
-      "Chỉ trong 24 giờ, tất cả sản phẩm đều được giảm giá, nhanh tay săn deal ngay hôm nay...",
-    date: "2025-03-12",
-    image: "https://images.unsplash.com/photo-1555529669-2263aa4074b0",
-    wordCount: 140,
-  },
-  {
-    id: 8,
-    category: "Xu hướng thời trang",
-    tags: ["Phụ kiện"],
-    title: "Phụ kiện nổi bật cho mùa xuân hè 2025",
-    content:
-      "Khám phá những mẫu phụ kiện hot nhất để nâng tầm phong cách của bạn trong năm nay...",
-    date: "2025-03-11",
-    image: "https://images.unsplash.com/photo-1519706882493-30119b506d8d",
-    wordCount: 200,
-  },
-  {
-    id: 9,
-    category: "Sản phẩm mới",
-    tags: ["Túi xách"],
-    title: "Bộ sưu tập túi xách đa năng mùa hè 2025",
-    content:
-      "Túi xách mới với thiết kế đa năng, vừa thời trang vừa tiện dụng cho mọi hoạt động...",
-    date: "2025-03-10",
-    image: "https://images.unsplash.com/photo-1554343449-738f7c16faff",
-    wordCount: 210,
-  },
-];
+// Component Skeleton Loading
+const NewsCardSkeleton = () => (
+  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md animate-pulse">
+    <div className="w-full h-48 bg-gray-300 dark:bg-gray-600 rounded-lg mb-4"></div>
+    <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
+    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/2 mb-4"></div>
+    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-full mb-2"></div>
+    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-2/3"></div>
+  </div>
+);
 
+// Component Breadcrumb
+const Breadcrumb = ({ items }) => (
+  <nav className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
+    <a href="/" className="hover:text-red-500">
+      <FiHome size={16} />
+    </a>
+    {items.map((item, index) => (
+      <React.Fragment key={index}>
+        <span>/</span>
+        <a
+          href={item.path}
+          className={`hover:text-red-500 ${
+            index === items.length - 1 ? "text-red-500 font-medium" : ""
+          }`}
+        >
+          {item.label}
+        </a>
+      </React.Fragment>
+    ))}
+  </nav>
+);
+
+// Component QuickLinks
+const QuickLinks = ({ onCategoryClick }) => {
+  const links = [
+    { id: "flash-sale", label: "Flash Sale", tag: "flash-sale" },
+    { id: "trending", label: "Trending", tag: "trending" },
+    { id: "khuyen-mai", label: "Khuyến mãi hot", tag: "ưu đãi" },
+    { id: "review", label: "Review", tag: "review" },
+    { id: "so-sanh", label: "So sánh", tag: "so sánh" },
+    { id: "tu-van", label: "Tư vấn", tag: "tư vấn" },
+  ];
+
+  return (
+    <div className="flex overflow-x-auto whitespace-nowrap py-2 mb-4 scrollbar-hide">
+      {links.map((link) => (
+        <button
+          key={link.id}
+          onClick={() => onCategoryClick(link.tag)}
+          className="inline-block px-4 py-1 mr-2 text-sm bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors"
+        >
+          {link.label}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+// Component BannerSlider
+const BannerSlider = ({ news = [] }) => {
+  if (!Array.isArray(news) || news.length === 0) return null;
+
+  return (
+    <div className="mb-8">
+      <Swiper
+        modules={[Pagination, Autoplay]}
+        spaceBetween={0}
+        slidesPerView={1}
+        pagination={{ clickable: true }}
+        autoplay={{ delay: 5000 }}
+        className="rounded-lg overflow-hidden"
+      >
+        {news.slice(0, 5).map((item) => (
+          <SwiperSlide key={item.id}>
+            <div className="relative h-[400px]">
+              <OptimizedImage
+                src={item.image}
+                alt={item.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-6">
+                <h2 className="text-white text-2xl font-bold mb-2">
+                  {item.title}
+                </h2>
+                <p className="text-white text-sm line-clamp-2">
+                  {item.description || "Không có mô tả"}
+                </p>
+              </div>
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
+  );
+};
+
+// Custom hooks
+const useIsNewNews = () => {
+  return useCallback((date) => {
+    const newsDate = new Date(date);
+    const now = new Date();
+    const diffTime = Math.abs(now - newsDate);
+    const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+    return diffHours <= 24;
+  }, []);
+};
+
+// Component NewsGrid
+const NewsGrid = ({
+  title,
+  news = [],
+  onNewsClick,
+  bookmarks = [],
+  hearts = {},
+  handleBookmark,
+  handleHeart,
+  handleShare,
+}) => {
+  const isNewNews = useIsNewNews();
+  const getReadingTime = (wordCount) => Math.ceil(wordCount / 200);
+
+  if (!Array.isArray(news) || news.length === 0) {
+    return <p className="text-center text-gray-500">Không có tin tức nào</p>;
+  }
+
+  return (
+    <div className="mb-8">
+      {title && (
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold dark:text-white">{title}</h2>
+          <a
+            href="#"
+            className="text-red-500 hover:text-red-600 text-sm font-medium"
+          >
+            Xem tất cả
+          </a>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {news.map((item) => (
+          <article
+            key={item.id}
+            className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer"
+            onClick={() => onNewsClick(item)}
+          >
+            <div className="relative aspect-video overflow-hidden">
+              <OptimizedImage
+                src={item.image}
+                alt={item.title}
+                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+              />
+              {item.tags?.includes("ưu đãi") && (
+                <span className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                  HOT
+                </span>
+              )}
+              {isNewNews(item.date) && (
+                <span className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                  MỚI
+                </span>
+              )}
+            </div>
+
+            <div className="p-5">
+              <div className="flex flex-wrap gap-2 mb-3">
+                {item.tags?.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-block bg-gray-100 dark:bg-gray-700 text-xs px-2 py-1 rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-red-500 transition-colors">
+                {item.title}
+              </h3>
+
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                {item.description || "Không có mô tả"}
+              </p>
+
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center text-gray-500 dark:text-gray-400">
+                  <FiClock className="mr-1" />
+                  <span>{getReadingTime(item.wordCount)} phút đọc</span>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleBookmark(item);
+                    }}
+                    className={`p-2 rounded-full transition-colors ${
+                      bookmarks.includes(item.id)
+                        ? "text-yellow-500 bg-yellow-50 dark:bg-gray-700"
+                        : "text-gray-400 hover:text-yellow-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    <FiBookmark size={18} />
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleHeart(item.id);
+                    }}
+                    className={`p-2 rounded-full transition-colors ${
+                      hearts[item.id]
+                        ? "text-red-500 bg-red-50 dark:bg-gray-700"
+                        : "text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    <FiHeart size={18} />
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShare(item, "copy");
+                    }}
+                    className="p-2 rounded-full text-gray-400 hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <FiShare2 size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Component ProductCard
+const ProductCard = ({ product }) => {
+  const [showQuickView, setShowQuickView] = useState(false);
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div className="relative group">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-48 object-cover"
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <button
+            onClick={() => setShowQuickView(true)}
+            className="bg-white text-gray-800 px-4 py-2 rounded-full hover:bg-red-500 hover:text-white transition-colors"
+          >
+            Xem nhanh
+          </button>
+        </div>
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold mb-2 hover:text-red-500 cursor-pointer">
+          {product.name}
+        </h3>
+        <div className="flex items-center mb-2">
+          <span className="text-red-500 font-bold">{product.price}đ</span>
+          {product.oldPrice && (
+            <span className="ml-2 text-gray-500 line-through text-sm">
+              {product.oldPrice}đ
+            </span>
+          )}
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <FiStar
+                key={star}
+                className={`${
+                  star <= product.rating
+                    ? "text-yellow-500 fill-current"
+                    : "text-gray-400"
+                }`}
+              />
+            ))}
+            <span className="ml-1 text-sm text-gray-500">
+              ({product.reviews})
+            </span>
+          </div>
+          <button className="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition-colors">
+            Mua ngay
+          </button>
+        </div>
+      </div>
+
+      {showQuickView && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => setShowQuickView(false)}
+          />
+          <div className="relative bg-white dark:bg-gray-800 p-6 rounded-lg max-w-2xl w-full mx-4">
+            <button
+              onClick={() => setShowQuickView(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <FiX size={24} />
+            </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full rounded-lg"
+                />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold mb-4">{product.name}</h2>
+                <div className="flex items-center mb-4">
+                  <span className="text-2xl text-red-500 font-bold">
+                    {product.price}đ
+                  </span>
+                  {product.oldPrice && (
+                    <span className="ml-2 text-gray-500 line-through">
+                      {product.oldPrice}đ
+                    </span>
+                  )}
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  {product.description}
+                </p>
+                <div className="flex items-center mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FiStar
+                      key={star}
+                      className={`${
+                        star <= product.rating
+                          ? "text-yellow-500 fill-current"
+                          : "text-gray-400"
+                      }`}
+                    />
+                  ))}
+                  <span className="ml-2 text-gray-500">
+                    ({product.reviews} đánh giá)
+                  </span>
+                </div>
+                <button className="w-full bg-red-500 text-white py-3 rounded-full hover:bg-red-600 transition-colors">
+                  Thêm vào giỏ hàng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Component CommentSection
+const CommentSection = ({ comments = [], onAddComment, onAddReply }) => {
+  const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState("");
+
+  const handleSubmitComment = (e) => {
+    e.preventDefault();
+    if (newComment.trim()) {
+      onAddComment(newComment);
+      setNewComment("");
+    }
+  };
+
+  const handleSubmitReply = (commentId) => {
+    if (replyText.trim()) {
+      onAddReply(commentId, replyText);
+      setReplyText("");
+      setReplyingTo(null);
+    }
+  };
+
+  return (
+    <div className="mt-8">
+      <h3 className="text-xl font-bold mb-4 dark:text-white">Bình luận</h3>
+
+      <form onSubmit={handleSubmitComment} className="mb-6">
+        <div className="flex gap-4">
+          <input
+            type="text"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Viết bình luận của bạn..."
+            className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600"
+          />
+          <button
+            type="submit"
+            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Gửi
+          </button>
+        </div>
+      </form>
+
+      <div className="space-y-4">
+        {comments.map((comment) => (
+          <div
+            key={comment.id}
+            className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"
+          >
+            <div className="flex items-start gap-4">
+              <img
+                src={comment.avatar || "https://via.placeholder.com/40"}
+                alt={comment.author}
+                className="w-10 h-10 rounded-full"
+              />
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold dark:text-white">
+                    {comment.author || "Ẩn danh"}
+                  </h4>
+                  <span className="text-sm text-gray-500">{comment.date}</span>
+                </div>
+                <p className="mt-1 text-gray-600 dark:text-gray-300">
+                  {comment.content}
+                </p>
+                <div className="mt-2 flex items-center gap-4">
+                  <button
+                    onClick={() => setReplyingTo(comment.id)}
+                    className="text-sm text-gray-500 hover:text-red-500"
+                  >
+                    Trả lời
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <button className="text-gray-500 hover:text-red-500">
+                      <FiHeart />
+                    </button>
+                    <span className="text-sm text-gray-500">
+                      {comment.likes || 0}
+                    </span>
+                  </div>
+                </div>
+
+                {comment.replies && (
+                  <div className="mt-4 ml-8 space-y-4">
+                    {comment.replies.map((reply) => (
+                      <div
+                        key={reply.id}
+                        className="bg-white dark:bg-gray-700 rounded-lg p-4"
+                      >
+                        <div className="flex items-start gap-4">
+                          <img
+                            src={
+                              reply.avatar || "https://via.placeholder.com/32"
+                            }
+                            alt={reply.author}
+                            className="w-8 h-8 rounded-full"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <h5 className="font-semibold dark:text-white">
+                                {reply.author || "Ẩn danh"}
+                              </h5>
+                              <span className="text-sm text-gray-500">
+                                {reply.date}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-gray-600 dark:text-gray-300">
+                              {reply.content}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {replyingTo === comment.id && (
+                  <div className="mt-4 ml-8">
+                    <div className="flex gap-4">
+                      <input
+                        type="text"
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder="Viết câu trả lời..."
+                        className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <button
+                        onClick={() => handleSubmitReply(comment.id)}
+                        className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      >
+                        Gửi
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// SEO Component
+const SEO = ({ title, description, image, url }) => (
+  <Helmet>
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    <meta property="og:url" content={url} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    <script type="application/ld+json">
+      {`
+        {
+          "@context": "https://schema.org",
+          "@type": "NewsArticle",
+          "headline": "${title}",
+          "image": "${image}",
+          "description": "${description}",
+          "url": "${url}",
+          "datePublished": "${new Date().toISOString()}",
+          "publisher": {
+            "@type": "Organization",
+            "name": "TechNews",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://example.com/logo.png"
+            }
+          }
+        }
+      `}
+    </script>
+  </Helmet>
+);
+
+// Performance optimized image component
+const OptimizedImage = ({ src, alt, className }) => (
+  <LazyLoadImage
+    src={src}
+    alt={alt}
+    effect="blur"
+    className={className}
+    loading="lazy"
+    placeholderSrc={`${src}?w=50`}
+  />
+);
+
+// Reading Progress Bar
+const ReadingProgress = () => {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const updateProgress = () => {
+      const scrolled = window.scrollY;
+      const height = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (scrolled / height) * 100;
+      setProgress(progress);
+    };
+
+    window.addEventListener("scroll", updateProgress);
+    return () => window.removeEventListener("scroll", updateProgress);
+  }, []);
+
+  return (
+    <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
+      <div
+        className="h-full bg-red-500 transition-all duration-200"
+        style={{ width: `${progress}%` }}
+      />
+    </div>
+  );
+};
+
+// Table of Contents
+const TableOfContents = ({ content }) => {
+  const [headings, setHeadings] = useState([]);
+  const [activeId, setActiveId] = useState("");
+
+  useEffect(() => {
+    const elements = document.querySelectorAll("h2, h3");
+    const headingsData = Array.from(elements).map((element) => ({
+      id: element.id,
+      text: element.textContent,
+      level: element.tagName === "H2" ? 2 : 3,
+    }));
+    setHeadings(headingsData);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-20% 0px -80% 0px" }
+    );
+
+    elements.forEach((elem) => observer.observe(elem));
+    return () => observer.disconnect();
+  }, [content]);
+
+  return (
+    <nav className="sticky top-20 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-h-[calc(100vh-6rem)] overflow-y-auto">
+      <h4 className="text-lg font-bold mb-4 dark:text-white">Mục lục</h4>
+      <ul className="space-y-2">
+        {headings.map((heading) => (
+          <li
+            key={heading.id}
+            style={{ marginLeft: `${(heading.level - 2) * 1}rem` }}
+          >
+            <a
+              href={`#${heading.id}`}
+              className={`block py-1 text-sm ${
+                activeId === heading.id
+                  ? "text-red-500 font-medium"
+                  : "text-gray-600 dark:text-gray-400 hover:text-red-500"
+              }`}
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};
+
+// Component Header
+const Header = ({ darkMode, setDarkMode, searchTerm, setSearchTerm }) => {
+  return (
+    <header className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-md z-50">
+      <div className="container mx-auto px-4">
+        <div className="h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <a href="/" className="flex items-center space-x-2">
+              <FiMonitor className="text-red-500" size={24} />
+              <h1 className="text-xl font-bold dark:text-white">TechNews</h1>
+            </a>
+          </div>
+
+          <div className="flex-1 max-w-2xl mx-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Tìm kiếm tin tức..."
+                className="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <FiSearch
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+                size={20}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <button className="hover:text-red-500 dark:text-gray-300">
+              <FiBookmark size={20} />
+            </button>
+            <button className="hover:text-red-500 dark:text-gray-300">
+              <FiHeart size={20} />
+            </button>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="hover:text-red-500 dark:text-gray-300"
+            >
+              {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+// Component Navigation
+const Navigation = ({
+  categories = [],
+  selectedCategory,
+  setSelectedCategory,
+}) => {
+  if (!Array.isArray(categories) || categories.length === 0) return null;
+
+  return (
+    <nav className="bg-white dark:bg-gray-800 shadow-sm mb-6 overflow-x-auto">
+      <div className="container mx-auto px-4">
+        <div className="flex space-x-4 py-3">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`whitespace-nowrap px-4 py-2 rounded-full transition-colors ${
+                selectedCategory === category
+                  ? "bg-red-500 text-white"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+// Main NewsPage Component
 const NewsPage = () => {
+  const [newsData, setNewsData] = useState([]);
+  const [isLoadingApi, setIsLoadingApi] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedNews, setSelectedNews] = useState(null);
   const [savedNews, setSavedNews] = useState([]);
   const [sortBy, setSortBy] = useState("date-desc");
-  const [isLoading, setIsLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState("text-base");
   const [viewMode, setViewMode] = useState("grid");
-  const [comments, setComments] = useState(
-    () => JSON.parse(localStorage.getItem("newsComments")) || {}
-  );
-  const [hearts, setHearts] = useState(
-    () => JSON.parse(localStorage.getItem("newsHearts")) || {}
-  );
-  const [readHistory, setReadHistory] = useState(
-    () => JSON.parse(localStorage.getItem("readHistory")) || []
-  );
-  const [userProfile, setUserProfile] = useState({
-    name: "Người dùng ẩn danh",
+  const [comments, setComments] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("newsComments")) || {};
+    } catch {
+      return {};
+    }
   });
-  const [showPopup, setShowPopup] = useState(true);
-  const itemsPerPage = 6;
+  const [hearts, setHearts] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("newsHearts")) || {};
+    } catch {
+      return {};
+    }
+  });
+  const [readHistory, setReadHistory] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("readHistory")) || [];
+    } catch {
+      return [];
+    }
+  });
+  const [bookmarks, setBookmarks] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("newsBookmarks")) || [];
+    } catch {
+      return [];
+    }
+  });
+  const [searchHistory, setSearchHistory] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("searchHistory")) || [];
+    } catch {
+      return [];
+    }
+  });
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [ratings, setRatings] = useState({});
+  const itemsPerPage = 9;
+  const [categories, setCategories] = useState(["Tất cả"]);
 
-  const categories = [
-    "Tất cả",
-    "Sản phẩm mới",
-    "Khuyến mãi",
-    "Xu hướng thời trang",
-    "Sự kiện",
-    "Mẹo và Thủ Thuật",
-  ];
+  // Fetch dữ liệu từ API
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        setIsLoadingApi(true);
+        setError(null);
 
+        const response = await axios.get(
+          "https://ngochieuwedding.io.vn/api/su/news",
+          {
+            timeout: 5000,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (!response.data?.data) {
+          throw new Error("Không có dữ liệu tin tức");
+        }
+
+        const formattedNews = response.data.data.map((item) => ({
+          id: item._id || Math.random().toString(36).substr(2, 9),
+          title: item.title || "Không có tiêu đề",
+          description: item.description || "Không có mô tả",
+          content: item.body || "",
+          image: item.thumbnail || "https://via.placeholder.com/400x300",
+          date: item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString("vi-VN")
+            : "Không rõ",
+          category: "Tin tức",
+          tags: Array.isArray(item.tags) ? item.tags : [],
+          created_by: item.created_by || "Admin",
+          wordCount: (item.description || "").split(" ").length || 0,
+        }));
+
+        setNewsData(formattedNews);
+        const uniqueTags = [
+          "Tất cả",
+          ...new Set(formattedNews.flatMap((item) => item.tags)),
+        ];
+        setCategories(uniqueTags);
+      } catch (err) {
+        console.error("Lỗi khi tải tin tức:", err);
+        setError(
+          err.response?.data?.message ||
+            "Không thể kết nối đến máy chủ. Vui lòng thử lại sau."
+        );
+        toast.error("Không thể kết nối đến máy chủ. Vui lòng thử lại sau.");
+      } finally {
+        setIsLoadingApi(false);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
+  // Lưu dữ liệu vào localStorage
   useEffect(() => {
     localStorage.setItem("newsComments", JSON.stringify(comments));
+  }, [comments]);
+
+  useEffect(() => {
     localStorage.setItem("newsHearts", JSON.stringify(hearts));
+  }, [hearts]);
+
+  useEffect(() => {
     localStorage.setItem("readHistory", JSON.stringify(readHistory));
-  }, [comments, hearts, readHistory]);
+  }, [readHistory]);
 
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, [selectedCategory, searchTerm, sortBy]);
+    localStorage.setItem("newsBookmarks", JSON.stringify(bookmarks));
+  }, [bookmarks]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (selectedNews && comments[selectedNews.id]?.length > 0) {
-        toast.info("Có bình luận mới trong bài viết bạn đang xem!");
-      }
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [comments, selectedNews]);
+    localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+  }, [searchHistory]);
 
+  // Hàm lọc tin tức
   const getFilteredNews = () => {
     let filtered = [...newsData];
-    if (selectedCategory !== "Tất cả") {
-      filtered = filtered.filter((news) => news.category === selectedCategory);
+
+    if (selectedCategory === "Đã Lưu") {
+      filtered = filtered.filter((news) => bookmarks.includes(news.id));
+    } else if (selectedCategory !== "Tất cả") {
+      filtered = filtered.filter((news) =>
+        news.tags.includes(selectedCategory)
+      );
     }
-    filtered = filtered.filter((news) =>
-      news.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (news) =>
+          news.title.toLowerCase().includes(searchLower) ||
+          news.description.toLowerCase().includes(searchLower) ||
+          news.tags.some((tag) => tag.toLowerCase().includes(searchLower))
+      );
+    }
+
+    if (dateRange.start && dateRange.end) {
+      filtered = filtered.filter((news) => {
+        const newsDate = new Date(news.date);
+        return (
+          newsDate >= new Date(dateRange.start) &&
+          newsDate <= new Date(dateRange.end)
+        );
+      });
+    }
+
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((news) =>
+        selectedTags.every((tag) => news.tags.includes(tag))
+      );
+    }
+
     filtered.sort((a, b) => {
-      if (sortBy === "date-desc") return new Date(b.date) - new Date(a.date);
-      if (sortBy === "date-asc") return new Date(a.date) - new Date(b.date);
-      if (sortBy === "title") return a.title.localeCompare(b.title);
-      return 0;
+      switch (sortBy) {
+        case "date-desc":
+          return new Date(b.date) - new Date(a.date);
+        case "date-asc":
+          return new Date(a.date) - new Date(b.date);
+        case "title":
+          return a.title.localeCompare(b.title);
+        default:
+          return 0;
+      }
     });
+
     return filtered;
   };
 
@@ -201,15 +947,22 @@ const NewsPage = () => {
   const getReadingTime = (wordCount) => Math.ceil(wordCount / 200);
 
   const handleShare = (news, platform) => {
-    const url = `${window.location.origin}/news/${news.id}`;
-    const text = encodeURIComponent(news.title);
-    if (platform === "copy") {
-      navigator.clipboard.writeText(url);
-      toast.success("Đã sao chép link!");
-    } else if (platform === "facebook") {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`);
-    } else if (platform === "twitter") {
-      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`);
+    if (!news) return;
+
+    try {
+      const url = `${window.location.origin}/news/${news.id}`;
+      const text = encodeURIComponent(news.title);
+
+      if (platform === "copy") {
+        navigator.clipboard.writeText(url);
+        toast.success("Đã sao chép link!");
+      } else if (platform === "facebook") {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`);
+      } else if (platform === "twitter") {
+        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`);
+      }
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi chia sẻ bài viết");
     }
   };
 
@@ -225,27 +978,32 @@ const NewsPage = () => {
   };
 
   const handleHeart = (newsId) => {
-    setHearts((prev) => ({
-      ...prev,
-      [newsId]: (prev[newsId] || 0) + 1,
-    }));
-    // Không hiển thị thông báo "Đã thả tim!"
+    if (!newsId) return;
+
+    setHearts((prev) => {
+      const newHearts = { ...prev, [newsId]: !prev[newsId] };
+      toast.success(newHearts[newsId] ? "Đã thích!" : "Đã bỏ thích!");
+      return newHearts;
+    });
   };
 
   const handleComment = (newsId, commentText) => {
-    if (!commentText.trim()) return;
+    if (!newsId || !commentText?.trim()) return;
+
+    const newComment = {
+      id: Date.now(),
+      text: commentText,
+      date: new Date().toLocaleString("vi-VN"),
+      user: "Người dùng",
+      avatar: "https://via.placeholder.com/40",
+      likes: 0,
+    };
+
     setComments((prev) => ({
       ...prev,
-      [newsId]: [
-        ...(prev[newsId] || []),
-        {
-          id: Date.now(),
-          text: commentText,
-          date: new Date().toLocaleString(),
-          user: userProfile.name,
-        },
-      ],
+      [newsId]: [...(prev[newsId] || []), newComment],
     }));
+    toast.success("Đã thêm bình luận!");
   };
 
   const handleSubscribe = (e) => {
@@ -254,10 +1012,24 @@ const NewsPage = () => {
   };
 
   const handleNewsClick = (news) => {
+    if (!news) return;
+
     setSelectedNews(news);
     if (!readHistory.includes(news.id)) {
-      setReadHistory((prev) => [...prev, news.id]);
+      setReadHistory((prev) => [...prev, news.id].slice(0, 10));
     }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.pageYOffset > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const NewsDetail = ({ news, onBack }) => {
@@ -266,412 +1038,545 @@ const NewsPage = () => {
       .filter((n) => n.category === news.category && n.id !== news.id)
       .slice(0, 3);
 
+    useEffect(() => {
+      // Thay thế cho UNSAFE_componentWillMount
+      console.log("NewsDetail mounted:", news);
+    }, [news]);
+
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-        <Helmet>
-          <title>{news.title}</title>
-          <meta name="description" content={news.content.slice(0, 150)} />
-        </Helmet>
-        <button
-          onClick={onBack}
-          className="mb-4 flex items-center text-gray-600 dark:text-gray-300 hover:text-red-500 transition-colors"
-        >
-          <FiArrowLeft className="mr-2" /> Quay lại
-        </button>
-        {news.media?.type === "video" ? (
-          <video
-            controls
-            className="w-full h-64 mb-4 rounded-lg"
-            src={news.media.url}
-          />
-        ) : (
-          <img
+      <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+        <div className="relative h-96">
+          <OptimizedImage
             src={news.image}
             alt={news.title}
-            className="w-full h-64 object-cover rounded-lg mb-4"
-            loading="lazy"
+            className="w-full h-full object-cover"
           />
-        )}
-        <h2 className={`text-2xl font-bold mb-2 dark:text-white ${fontSize}`}>
-          {news.title}
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300 mb-2 flex items-center">
-          {news.date} | {news.category} | <FiClock className="ml-1 mr-1" />{" "}
-          {getReadingTime(news.wordCount)} phút đọc
-        </p>
-        <p className={`text-gray-800 dark:text-gray-200 ${fontSize}`}>
-          {news.content}
-        </p>
-        <div className="mt-4 flex items-center gap-4">
-          <FiHeart
-            className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-600 transition-colors"
-            size={20}
-            onClick={() => handleHeart(news.id)}
-          />
-          <span className="text-gray-600 dark:text-gray-300">
-            {hearts[news.id] || 0} lượt thả tim
-          </span>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <button
+            onClick={onBack}
+            className="absolute top-4 left-4 bg-white/20 backdrop-blur-md text-white p-2 rounded-full hover:bg-white/30 transition-colors"
+          >
+            <FiArrowLeft size={24} />
+          </button>
         </div>
-        <div className="mt-4">
-          <h4 className="font-semibold dark:text-white">Tags:</h4>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {news.tags.map((tag) => (
+
+        <div className="p-8">
+          <div className="flex flex-wrap gap-2 mb-4">
+            {news.tags?.map((tag) => (
               <span
                 key={tag}
-                className="inline-block bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full text-sm text-gray-800 dark:text-gray-200"
+                className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-sm"
               >
                 {tag}
               </span>
             ))}
           </div>
-        </div>
-        <div className="mt-6">
-          <h4 className="font-semibold dark:text-white">Bình luận:</h4>
-          <div className="mt-2 space-y-3">
-            {(comments[news.id] || []).map((comment) => (
-              <div
-                key={comment.id}
-                className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg"
-              >
-                <p className="text-gray-800 dark:text-gray-200">
-                  <strong>{comment.user}:</strong> {comment.text}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {comment.date}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 flex gap-2">
-            <input
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Viết bình luận..."
-              className="flex-1 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
-            />
-            <button
-              onClick={() => {
-                handleComment(news.id, newComment);
-                setNewComment("");
-              }}
-              className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-            >
-              Gửi
-            </button>
-          </div>
-        </div>
-        <div className="mt-6">
-          <h4 className="font-semibold dark:text-white">Tin tức liên quan:</h4>
-          <div className="mt-2 space-y-2">
-            {relatedNews.map((item) => (
-              <div
-                key={item.id}
-                className="cursor-pointer text-blue-500 hover:underline transition-colors"
-                onClick={() => setSelectedNews(item)}
-              >
-                {item.title}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
 
-  const PersistentPopup = () => {
-    return (
-      <div
-        className={`fixed top-0 left-0 w-full bg-white dark:bg-gray-800 shadow-lg p-4 flex items-center justify-between z-50 ${
-          showPopup ? "block" : "hidden"
-        }`}
-      >
-        <div>
-          <h3 className="text-lg font-semibold dark:text-white">
-            Sale cuối mùa giảm giá lên đến 50%
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-            2025-03-11 | Khuyến mãi lớn cuối mùa với nhiều sản phẩm giảm giá
-            sâu, cơ hội không thể bỏ lỡ...
-          </p>
-          <button className="mt-2 px-4 py-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
-            Tìm hiểu thêm
-          </button>
-        </div>
-        <button
-          onClick={() => setShowPopup(false)}
-          className="text-gray-600 dark:text-gray-300 hover:text-red-500 transition-colors"
-        >
-          <FiX size={20} />
-        </button>
-      </div>
-    );
-  };
+          <h1 className="text-3xl font-bold mb-4 dark:text-white">
+            {news.title}
+          </h1>
 
-  return (
-    <div
-      className={`min-h-screen ${
-        darkMode ? "dark bg-gray-900" : "bg-gray-50"
-      } pt-16`}
-    >
-      <ToastContainer position="top-right" autoClose={3000} />
-      {showPopup && <PersistentPopup />}
-
-      <nav className="fixed top-0 left-0 w-full bg-white dark:bg-gray-800 shadow-md z-40 transition-shadow duration-300">
-        <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row gap-4 items-center">
-          <div className="relative flex-1 w-full md:w-auto">
-            <input
-              type="text"
-              placeholder="Tìm kiếm tin tức..."
-              className="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <FiSearch
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-300"
-              size={20}
-            />
-          </div>
-          <select
-            className="px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="date-desc">Mới nhất</option>
-            <option value="date-asc">Cũ nhất</option>
-            <option value="title">Theo tiêu đề</option>
-          </select>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-          >
-            {darkMode ? "Sáng" : "Tối"}
-          </button>
-          <select
-            className="px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
-            value={fontSize}
-            onChange={(e) => setFontSize(e.target.value)}
-          >
-            <option value="text-sm">Nhỏ</option>
-            <option value="text-base">Trung bình</option>
-            <option value="text-lg">Lớn</option>
-          </select>
-          <div className="flex gap-2">
-            <FiGrid
-              className={`cursor-pointer ${
-                viewMode === "grid" ? "text-red-500" : ""
-              } hover:text-red-500 transition-colors`}
-              size={20}
-              onClick={() => setViewMode("grid")}
-            />
-            <FiList
-              className={`cursor-pointer ${
-                viewMode === "list" ? "text-red-500" : ""
-              } hover:text-red-500 transition-colors`}
-              size={20}
-              onClick={() => setViewMode("list")}
-            />
-          </div>
-        </div>
-      </nav>
-
-      <div className="container mx-auto px-4 pt-24 pb-8">
-        {selectedNews ? (
-          <NewsDetail
-            news={selectedNews}
-            onBack={() => setSelectedNews(null)}
-          />
-        ) : (
-          <>
-            <div className="flex flex-wrap gap-2 mb-6">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  className={`px-4 py-2 rounded-full transition-colors duration-200 ${
-                    selectedCategory === category
-                      ? "bg-red-500 text-white"
-                      : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-                  }`}
-                  onClick={() => {
-                    setSelectedCategory(category);
-                    setCurrentPage(1);
-                  }}
-                >
-                  {category}
-                </button>
-              ))}
+          <div className="flex items-center gap-4 text-gray-500 dark:text-gray-400 mb-6">
+            <div className="flex items-center">
+              <FiClock className="mr-2" />
+              <span>{getReadingTime(news.wordCount)} phút đọc</span>
             </div>
+            <div className="flex items-center">
+              <FiCalendar className="mr-2" />
+              <span>{new Date(news.date).toLocaleDateString("vi-VN")}</span>
+            </div>
+          </div>
 
-            {isLoading ? (
-              <div className="text-center py-10">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
-                <p className="mt-2 dark:text-white">Đang tải tin tức...</p>
+          <div className="prose dark:prose-invert max-w-none mb-8">
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+              {news.description || "Không có mô tả"}
+            </p>
+            {news.content && (
+              <div className="mt-4">
+                <h3 className="text-xl font-semibold dark:text-white">
+                  Nội dung chi tiết
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {news.content}
+                </p>
               </div>
-            ) : (
-              <div
-                className={
-                  viewMode === "grid"
-                    ? "grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                    : "flex flex-col gap-6"
-                }
+            )}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-b border-gray-200 dark:border-gray-700 py-4 mb-8">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleHeart(news.id);
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
+                  hearts[news.id]
+                    ? "bg-red-50 text-red-500 dark:bg-gray-700"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
               >
-                {paginatedNews.map((news) => (
+                <FiHeart className={hearts[news.id] ? "fill-current" : ""} />
+                <span>{hearts[news.id] ? "Đã thích" : "Thích"}</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBookmark(news);
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
+                  bookmarks.includes(news.id)
+                    ? "bg-yellow-50 text-yellow-500 dark:bg-gray-700"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+              >
+                <FiBookmark
+                  className={bookmarks.includes(news.id) ? "fill-current" : ""}
+                />
+                <span>
+                  {bookmarks.includes(news.id) ? "Đã lưu" : "Lưu tin"}
+                </span>
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShare(news, "facebook");
+                }}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <FiFacebook size={20} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShare(news, "twitter");
+                }}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <FiTwitter size={20} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShare(news, "copy");
+                }}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <FiLink size={20} />
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-4 dark:text-white">
+              Bình luận ({(comments[news.id] || []).length})
+            </h3>
+            <div className="flex gap-4 mb-6">
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Viết bình luận của bạn..."
+                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-red-400"
+              />
+              <button
+                onClick={() => {
+                  if (newComment.trim()) {
+                    handleComment(news.id, newComment);
+                    setNewComment("");
+                  }
+                }}
+                className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Gửi
+              </button>
+            </div>
+            <CommentSection
+              comments={comments[news.id] || []}
+              onAddComment={(text) => handleComment(news.id, text)}
+              onAddReply={(commentId, replyText) => {
+                const newReply = {
+                  id: Date.now(),
+                  content: replyText,
+                  date: new Date().toLocaleString("vi-VN"),
+                  author: "Người dùng",
+                  avatar: "https://via.placeholder.com/32",
+                  likes: 0,
+                };
+                setComments((prev) => ({
+                  ...prev,
+                  [news.id]: (prev[news.id] || []).map((c) =>
+                    c.id === commentId
+                      ? { ...c, replies: [...(c.replies || []), newReply] }
+                      : c
+                  ),
+                }));
+                toast.success("Đã thêm trả lời!");
+              }}
+            />
+          </div>
+
+          {relatedNews.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold mb-4 dark:text-white">
+                Tin tức liên quan
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {relatedNews.map((item) => (
                   <div
-                    key={news.id}
-                    className="group bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-                    onClick={() => handleNewsClick(news)}
+                    key={item.id}
+                    className="flex gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => setSelectedNews(item)}
                   >
-                    <img
-                      src={news.image}
-                      alt={news.title}
-                      className="w-full h-48 object-cover rounded-lg mb-4"
-                      loading="lazy"
+                    <OptimizedImage
+                      src={item.image}
+                      alt={item.title}
+                      className="w-24 h-24 object-cover rounded-lg"
                     />
-                    <h3
-                      className={`text-xl font-semibold text-gray-800 dark:text-white ${fontSize}`}
-                    >
-                      {news.title}
-                    </h3>
-                    <p
-                      className={`text-gray-600 dark:text-gray-300 mt-2 ${fontSize}`}
-                    >
-                      {news.content.slice(0, 100)}...
-                    </p>
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {news.date} | <FiClock className="ml-1 mr-1" />{" "}
-                        {getReadingTime(news.wordCount)} phút
-                      </span>
-                      <div className="flex space-x-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <FiShare2
-                          className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors"
-                          size={20}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShare(news, "copy");
-                          }}
-                        />
-                        <FiStar
-                          className={`cursor-pointer ${
-                            savedNews.includes(news.id)
-                              ? "text-yellow-500"
-                              : "text-gray-500 dark:text-gray-400 hover:text-yellow-500"
-                          } transition-colors`}
-                          size={20}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSave(news);
-                          }}
-                        />
-                        <FiMessageSquare
-                          className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-blue-500 transition-colors"
-                          size={20}
-                        />
-                        <FiHeart
-                          className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-600 transition-colors"
-                          size={20}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleHeart(news.id);
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                      {hearts[news.id] || 0} lượt thả tim |{" "}
-                      {(comments[news.id] || []).length} bình luận
+                    <div>
+                      <h4 className="font-medium mb-2 line-clamp-2 dark:text-white">
+                        {item.title}
+                      </h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(item.date).toLocaleDateString("vi-VN")}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
-            )}
-
-            {filteredNews.length > 0 && totalPages > 1 && (
-              <div className="flex justify-center mt-6 gap-2">
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
-                >
-                  Trang trước
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    className={`px-4 py-2 rounded-full transition-colors ${
-                      currentPage === i + 1
-                        ? "bg-red-500 text-white"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    }`}
-                    onClick={() => setCurrentPage(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
-                >
-                  Trang sau
-                </button>
-              </div>
-            )}
-
-            <div className="mt-8 bg-gray-100 dark:bg-gray-800 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold dark:text-white mb-4">
-                Lịch sử đọc
-              </h3>
-              {readHistory.length > 0 ? (
-                <ul className="list-disc pl-5 space-y-2">
-                  {readHistory.map((id) => {
-                    const news = newsData.find((n) => n.id === id);
-                    return news ? (
-                      <li
-                        key={id}
-                        className="text-blue-500 hover:underline cursor-pointer transition-colors"
-                        onClick={() => setSelectedNews(news)}
-                      >
-                        {news.title}
-                      </li>
-                    ) : null;
-                  })}
-                </ul>
-              ) : (
-                <p className="text-gray-600 dark:text-gray-300">
-                  Chưa có tin tức nào được đọc.
-                </p>
-              )}
             </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
-            <form
-              onSubmit={handleSubscribe}
-              className="mt-8 bg-gray-100 dark:bg-gray-800 p-6 rounded-lg text-center"
+  const handleRating = (newsId, rating) => {
+    setRatings((prev) => ({
+      ...prev,
+      [newsId]: rating,
+    }));
+    toast.success("Cảm ơn bạn đã đánh giá!");
+  };
+
+  const handleBookmark = (news) => {
+    if (!news) return;
+
+    setBookmarks((prev) => {
+      const newBookmarks = prev.includes(news.id)
+        ? prev.filter((id) => id !== news.id)
+        : [...prev, news.id];
+      toast.success(
+        newBookmarks.includes(news.id)
+          ? "Đã thêm vào bookmark"
+          : "Đã xóa khỏi bookmark"
+      );
+      return newBookmarks;
+    });
+  };
+
+  const RatingStars = ({ newsId }) => {
+    const currentRating = ratings[newsId] || 0;
+    return (
+      <div className="flex items-center space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <FiStar
+            key={star}
+            className={`cursor-pointer ${
+              star <= currentRating
+                ? "text-yellow-500 fill-current"
+                : "text-gray-400"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRating(newsId, star);
+            }}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  const AdvancedSearch = () => (
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Từ ngày
+          </label>
+          <input
+            type="date"
+            value={dateRange.start}
+            onChange={(e) =>
+              setDateRange((prev) => ({ ...prev, start: e.target.value }))
+            }
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Đến ngày
+          </label>
+          <input
+            type="date"
+            value={dateRange.end}
+            onChange={(e) =>
+              setDateRange((prev) => ({ ...prev, end: e.target.value }))
+            }
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600"
+          />
+        </div>
+      </div>
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Tags
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {getAllTags().map((tag) => (
+            <button
+              key={tag}
+              onClick={() =>
+                setSelectedTags((prev) =>
+                  prev.includes(tag)
+                    ? prev.filter((t) => t !== tag)
+                    : [...prev, tag]
+                )
+              }
+              className={`px-3 py-1 rounded-full text-sm ${
+                selectedTags.includes(tag)
+                  ? "bg-red-500 text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+              }`}
             >
-              <h3 className="text-xl font-semibold dark:text-white">
-                Đăng ký nhận tin tức
-              </h3>
-              <input
-                type="email"
-                placeholder="Nhập email của bạn..."
-                className="mt-4 px-4 py-2 w-full max-w-md rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
-                required
-              />
-              <button
-                type="submit"
-                className="mt-4 px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-              >
-                Đăng ký
-              </button>
-            </form>
-          </>
-        )}
+              {tag}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
+  );
+
+  const getAllTags = () => {
+    const allTags = newsData.reduce((tags, news) => {
+      return [...tags, ...(news.tags || [])];
+    }, []);
+    return [...new Set(allTags)];
+  };
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setShowSearchSuggestions(false);
+    if (!searchHistory.includes(term)) {
+      const newHistory = [term, ...searchHistory].slice(0, 5);
+      setSearchHistory(newHistory);
+    }
+  };
+
+  const handleQuickLinkClick = (tag) => {
+    setSelectedCategory(tag);
+    setCurrentPage(1);
+    const newsSection = document.getElementById("news-section");
+    if (newsSection) {
+      newsSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  return (
+    <>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      <SEO
+        title="TechNews - Tin tức công nghệ mới nhất"
+        description="Cập nhật tin tức công nghệ, đánh giá sản phẩm, khuyến mãi và nhiều hơn nữa"
+        image="https://example.com/og-image.jpg"
+        url={window.location.href}
+      />
+      <ReadingProgress />
+
+      <div
+        className={`min-h-screen ${
+          darkMode ? "dark bg-gray-900" : "bg-gray-50"
+        }`}
+      >
+        <Header
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
+
+        <main className="container mx-auto px-4 pt-20">
+          <Navigation
+            categories={categories}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
+
+          {selectedNews ? (
+            <NewsDetail
+              news={selectedNews}
+              onBack={() => setSelectedNews(null)}
+            />
+          ) : (
+            <div className="space-y-6">
+              <Breadcrumb
+                items={[
+                  { label: "Trang chủ", path: "/" },
+                  { label: "Tin tức", path: "/news" },
+                ]}
+              />
+
+              {isLoadingApi && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Array(6)
+                    .fill()
+                    .map((_, i) => (
+                      <NewsCardSkeleton key={i} />
+                    ))}
+                </div>
+              )}
+
+              {error && (
+                <div className="text-center py-10">
+                  <p className="text-red-500 text-xl font-semibold mb-4">
+                    {error}
+                  </p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                  >
+                    Thử lại
+                  </button>
+                </div>
+              )}
+
+              {!isLoadingApi && !error && newsData.length > 0 && (
+                <>
+                  <QuickLinks onCategoryClick={handleQuickLinkClick} />
+                  <button
+                    onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                    className="mb-4 px-4 py-2 bg-red-500 text-white rounded-full"
+                  >
+                    {showAdvancedSearch
+                      ? "Ẩn tìm kiếm nâng cao"
+                      : "Tìm kiếm nâng cao"}
+                  </button>
+                  {showAdvancedSearch && <AdvancedSearch />}
+                  <BannerSlider news={newsData} />
+                </>
+              )}
+
+              <div id="news-section">
+                {selectedCategory !== "Tất cả" ? (
+                  <NewsGrid
+                    title={`Tin tức ${selectedCategory}`}
+                    news={paginatedNews}
+                    onNewsClick={handleNewsClick}
+                    bookmarks={bookmarks}
+                    hearts={hearts}
+                    handleBookmark={handleBookmark}
+                    handleHeart={handleHeart}
+                    handleShare={handleShare}
+                  />
+                ) : (
+                  <>
+                    <NewsGrid
+                      title="Tin tức nổi bật"
+                      news={newsData
+                        .filter((news) => news.tags?.includes("ưu đãi"))
+                        .slice(0, 6)}
+                      onNewsClick={handleNewsClick}
+                      bookmarks={bookmarks}
+                      hearts={hearts}
+                      handleBookmark={handleBookmark}
+                      handleHeart={handleHeart}
+                      handleShare={handleShare}
+                    />
+                    <NewsGrid
+                      title="Tin tức mới nhất"
+                      news={paginatedNews}
+                      onNewsClick={handleNewsClick}
+                      bookmarks={bookmarks}
+                      hearts={hearts}
+                      handleBookmark={handleBookmark}
+                      handleHeart={handleHeart}
+                      handleShare={handleShare}
+                    />
+                  </>
+                )}
+              </div>
+
+              {filteredNews.length > itemsPerPage && (
+                <div className="flex justify-center gap-2 py-6">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 disabled:opacity-50"
+                  >
+                    Trang trước
+                  </button>
+                  {Array.from(
+                    { length: Math.ceil(filteredNews.length / itemsPerPage) },
+                    (_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`px-4 py-2 rounded-full ${
+                          currentPage === i + 1
+                            ? "bg-red-500 text-white"
+                            : "bg-gray-200 dark:bg-gray-700"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    )
+                  )}
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        Math.min(
+                          prev + 1,
+                          Math.ceil(filteredNews.length / itemsPerPage)
+                        )
+                      )
+                    }
+                    disabled={
+                      currentPage ===
+                      Math.ceil(filteredNews.length / itemsPerPage)
+                    }
+                    className="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 disabled:opacity-50"
+                  >
+                    Trang sau
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {showScrollTop && (
+            <button
+              onClick={scrollToTop}
+              className="fixed bottom-8 right-8 p-3 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
+            >
+              <FiArrowUp size={24} />
+            </button>
+          )}
+        </main>
+      </div>
+    </>
   );
 };
 
