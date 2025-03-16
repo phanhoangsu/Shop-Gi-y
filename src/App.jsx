@@ -1,8 +1,8 @@
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import { CartProvider } from "./context/CartContext";
+import Admin from "./pages/Admin";
 import CartPage from "./pages/CartPage";
-import DetailPage from "./pages/DetailPage";
 import HomePage from "./pages/HomePage";
 import KidsPage from "./pages/KidsPage";
 import ListPage from "./pages/ListPage";
@@ -10,9 +10,8 @@ import LoginPage from "./pages/LoginPage";
 import ManPage from "./pages/ManPage";
 import NewsPage from "./pages/NewsPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import WomenPage from "./pages/WomenPage";
 import RegisterPage from "./pages/RegisterPage";
-import Admin from "./pages/Admin";
+import WomenPage from "./pages/WomenPage";
 
 function App() {
   return (
@@ -29,7 +28,6 @@ function App() {
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<RegisterPage />} />
-        <Route path="/detail" element={<DetailPage />} />
 
         <Route path="/news" element={<NewsPage />} />
         <Route path="/admin" element={<Admin />} />
