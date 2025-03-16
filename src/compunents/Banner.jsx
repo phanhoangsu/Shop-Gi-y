@@ -8,7 +8,8 @@ const Banner = () => {
   const navigate = useNavigate();
   const { cart, user, isLoggedIn, logout } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Thêm state cho loading
+  const [isLoading, setIsLoading] = useState(false); // State for loading
+  const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false); // State for avatar dropdown
   const cartItems = cart?.length || 0;
 
   const handleSearch = (e) => {
@@ -25,17 +26,17 @@ const Banner = () => {
   const handleLogout = () => {
     logout();
     navigate("/");
+    setIsAvatarMenuOpen(false); // Close menu after logout
   };
 
-  // Hàm xử lý khi click logo
+  // Handle logo click with loading effect
   const handleLogoClick = () => {
     setIsLoading(true);
-    // Simulate loading then reload
     setTimeout(() => {
       setIsLoading(false);
       navigate("/");
-      window.location.reload(); // Reload trang
-    }, 1000); // Delay 1 giây để thấy hiệu ứng loading
+      window.location.reload();
+    }, 1000);
   };
 
   return (
@@ -46,10 +47,8 @@ const Banner = () => {
             className="text-2xl sm:text-3xl font-bold text-red-500 cursor-pointer transition-transform hover:scale-105 relative"
             onClick={handleLogoClick}
           >
-            {/* Logo */}
             <span className="relative">
               jump<span className="text-blue-400">.</span>
-              {/* Hiệu ứng loading */}
               {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-6 h-6 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
@@ -112,20 +111,26 @@ const Banner = () => {
             </div>
 
             {isLoggedIn ? (
-              <div className="flex items-center space-x-2">
+              <div className="relative">
                 <div
                   className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold cursor-pointer hover:bg-blue-600 transition"
-                  onClick={() => navigate("/profile")}
-                  title={user?.username}
+                  onClick={() => setIsAvatarMenuOpen(!isAvatarMenuOpen)} // Toggle menu
+                  title="User Menu"
                 >
                   {getAvatar(user?.username)}
                 </div>
-                <button
-                  className="text-gray-800 hover:text-red-500 transition"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </button>
+                {isAvatarMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                    <ul className="py-1">
+                      <li
+                        className="px-4 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
             ) : (
               <button
@@ -184,20 +189,26 @@ const Banner = () => {
                 </span>
               </div>
               {isLoggedIn ? (
-                <div className="flex items-center space-x-2">
+                <div className="relative">
                   <div
                     className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold cursor-pointer hover:bg-blue-600 transition"
-                    onClick={() => navigate("/profile")}
-                    title={user?.username}
+                    onClick={() => setIsAvatarMenuOpen(!isAvatarMenuOpen)} // Toggle menu
+                    title="User Menu"
                   >
                     {getAvatar(user?.username)}
                   </div>
-                  <button
-                    className="text-gray-800 hover:text-red-500 transition"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </button>
+                  {isAvatarMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                      <ul className="py-1">
+                        <li
+                          className="px-4 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
+                          onClick={handleLogout}
+                        >
+                          Logout
+                        </li>
+                      </ul>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <button
