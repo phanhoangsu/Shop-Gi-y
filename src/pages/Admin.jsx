@@ -47,7 +47,17 @@ const Admin = () => {
     stock: "all",
   });
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const availableSizes = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43];
+
+  // Thông tin đăng nhập admin hard-coded
+  const ADMIN_USERNAME = "admin";
+  const ADMIN_PASSWORD = "1234";
+
+  const [adminLoginData, setAdminLoginData] = useState({
+    username: "",
+    password: "",
+  });
 
   const mockChartData = [
     { name: "T1", revenue: 4000 },
@@ -81,8 +91,10 @@ const Admin = () => {
   }, [formData, loading]);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (isAdminAuthenticated) {
+      fetchProducts();
+    }
+  }, [isAdminAuthenticated]);
 
   const fetchProducts = async () => {
     try {
@@ -107,6 +119,35 @@ const Admin = () => {
   const showNotification = (type, message) => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 3000);
+  };
+
+  const handleAdminLogin = (e) => {
+    e.preventDefault();
+    if (
+      adminLoginData.username === ADMIN_USERNAME &&
+      adminLoginData.password === ADMIN_PASSWORD
+    ) {
+      setIsAdminAuthenticated(true);
+      showNotification("success", "Đăng nhập admin thành công!");
+      setAdminLoginData({ username: "", password: "" });
+    } else {
+      showNotification("error", "Sai tên đăng nhập hoặc mật khẩu!");
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdminAuthenticated(false);
+    setAdminLoginData({ username: "", password: "" });
+    setCurrentView("dashboard");
+    showNotification("success", "Đã đăng xuất!");
+  };
+
+  const handleLoginInputChange = (e) => {
+    const { name, value } = e.target;
+    setAdminLoginData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleInputChange = (e) => {
@@ -177,7 +218,7 @@ const Admin = () => {
           }
           await request("POST", "/su/product", {
             ...submitData,
-            _id: undefined, // Không gửi _id cũ để tạo mới
+            _id: undefined,
           });
           showNotification("success", "Cập nhật sản phẩm thành công!");
           break;
@@ -364,7 +405,55 @@ const Admin = () => {
     </div>
   );
 
+  const renderLoginForm = () => (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          Đăng nhập Admin
+        </h2>
+        <form onSubmit={handleAdminLogin}>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Tên đăng nhập
+            </label>
+            <input
+              type="text"
+              name="username"
+              value={adminLoginData.username}
+              onChange={handleLoginInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Nhập tên đăng nhập"
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Mật khẩu
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={adminLoginData.password}
+              onChange={handleLoginInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Nhập mật khẩu"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-300"
+          >
+            Đăng nhập
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
+    if (!isAdminAuthenticated) {
+      return renderLoginForm();
+    }
+
     switch (currentView) {
       case "dashboard":
         return renderDashboard();
@@ -433,140 +522,144 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-800">Admin Dashboard</h1>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="p-2 rounded-lg hover:bg-gray-100 lg:hidden"
-          >
-            <FaTimes className="text-gray-600" />
-          </button>
+      {isAdminAuthenticated && (
+        <div
+          className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <h1 className="text-xl font-bold text-gray-800">Admin Dashboard</h1>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-2 rounded-lg hover:bg-gray-100 lg:hidden"
+            >
+              <FaTimes className="text-gray-600" />
+            </button>
+          </div>
+          <nav className="p-4">
+            <ul className="space-y-2">
+              <li>
+                <button
+                  onClick={() => setCurrentView("dashboard")}
+                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                    currentView === "dashboard"
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <FaTachometerAlt className="mr-3" />
+                  Dashboard
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("list")}
+                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                    currentView === "list"
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <FaBox className="mr-3" />
+                  Sản phẩm
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("orders")}
+                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                    currentView === "orders"
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <FaShoppingCart className="mr-3" />
+                  Đơn hàng
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("customers")}
+                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                    currentView === "customers"
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <FaUsers className="mr-3" />
+                  Khách hàng
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("reports")}
+                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                    currentView === "reports"
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <FaChartBar className="mr-3" />
+                  Báo cáo
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("settings")}
+                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                    currentView === "settings"
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <FaCog className="mr-3" />
+                  Cài đặt
+                </button>
+              </li>
+            </ul>
+          </nav>
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+            <button
+              onClick={handleAdminLogout}
+              className="w-full flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+            >
+              <FaSignOutAlt className="mr-3" />
+              Đăng xuất
+            </button>
+          </div>
         </div>
-        <nav className="p-4">
-          <ul className="space-y-2">
-            <li>
-              <button
-                onClick={() => setCurrentView("dashboard")}
-                className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                  currentView === "dashboard"
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <FaTachometerAlt className="mr-3" />
-                Dashboard
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setCurrentView("list")}
-                className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                  currentView === "list"
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <FaBox className="mr-3" />
-                Sản phẩm
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setCurrentView("orders")}
-                className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                  currentView === "orders"
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <FaShoppingCart className="mr-3" />
-                Đơn hàng
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setCurrentView("customers")}
-                className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                  currentView === "customers"
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <FaUsers className="mr-3" />
-                Khách hàng
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setCurrentView("reports")}
-                className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                  currentView === "reports"
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <FaChartBar className="mr-3" />
-                Báo cáo
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setCurrentView("settings")}
-                className={`w-full flex items-center px-4 py-2 rounded-lg ${
-                  currentView === "settings"
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <FaCog className="mr-3" />
-                Cài đặt
-              </button>
-            </li>
-          </ul>
-        </nav>
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-          <button
-            onClick={() => console.log("Logging out...")}
-            className="w-full flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg"
-          >
-            <FaSignOutAlt className="mr-3" />
-            Đăng xuất
-          </button>
-        </div>
-      </div>
+      )}
 
       <div
         className={`transition-all duration-300 ${
-          sidebarOpen ? "ml-64" : "ml-0"
+          sidebarOpen && isAdminAuthenticated ? "ml-64" : "ml-0"
         }`}
       >
-        <header className="bg-white border-b border-gray-200">
-          <div className="flex items-center justify-between px-4 py-3">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100"
-            >
-              <FaBars className="text-gray-600" />
-            </button>
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">Admin</div>
-              <div className="relative">
-                <img
-                  src="https://via.placeholder.com/40"
-                  alt="Avatar"
-                  className="w-8 h-8 rounded-full"
-                />
+        {isAdminAuthenticated && (
+          <header className="bg-white border-b border-gray-200">
+            <div className="flex items-center justify-between px-4 py-3">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-lg hover:bg-gray-100"
+              >
+                <FaBars className="text-gray-600" />
+              </button>
+              <div className="flex items-center space-x-4">
+                {/* <div className="text-sm text-gray-600">Admin</div>
+                <div className="relative">
+                  <img
+                    src="https://via.placeholder.com/40"
+                    alt="Avatar"
+                    className="w-8 h-8 rounded-full"
+                  />
+                </div> */}
               </div>
             </div>
-          </div>
-        </header>
+          </header>
+        )}
 
-        <main className="p-4">
+        <main className={isAdminAuthenticated ? "p-4" : ""}>
           {notification && (
             <div
               className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${

@@ -801,14 +801,16 @@ const useNewsFiltering = (newsData, filters) => {
 
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      const searchTerms = searchLower.split(" ").filter(term => term.length > 0);
-      filtered = filtered.filter(
-        (news) =>
-          searchTerms.every(term => 
+      const searchTerms = searchLower
+        .split(" ")
+        .filter((term) => term.length > 0);
+      filtered = filtered.filter((news) =>
+        searchTerms.every(
+          (term) =>
             news.title.toLowerCase().includes(term) ||
             news.description.toLowerCase().includes(term) ||
             news.tags.some((tag) => tag.toLowerCase().includes(term))
-          )
+        )
       );
     }
 
@@ -841,7 +843,15 @@ const useNewsFiltering = (newsData, filters) => {
     });
 
     return filtered;
-  }, [newsData, selectedCategory, searchTerm, dateRange, selectedTags, sortBy, bookmarks]);
+  }, [
+    newsData,
+    selectedCategory,
+    searchTerm,
+    dateRange,
+    selectedTags,
+    sortBy,
+    bookmarks,
+  ]);
 };
 
 // Utility function for API error handling
@@ -881,13 +891,16 @@ const NewsPage = () => {
   const [selectedTags, setSelectedTags] = useState([]);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  
+
   // Use custom hook for localStorage states
   const [comments, setComments] = useLocalStorage("newsComments", {});
   const [hearts, setHearts] = useLocalStorage("newsHearts", {});
   const [readHistory, setReadHistory] = useLocalStorage("readHistory", []);
   const [bookmarks, setBookmarks] = useLocalStorage("newsBookmarks", []);
-  const [searchHistory, setSearchHistory] = useLocalStorage("searchHistory", []);
+  const [searchHistory, setSearchHistory] = useLocalStorage(
+    "searchHistory",
+    []
+  );
   const [ratings, setRatings] = useLocalStorage("ratings", {});
   const itemsPerPage = 9;
   const [categories, setCategories] = useState(["Tất cả"]);
@@ -935,19 +948,19 @@ const NewsPage = () => {
         setRetryAttempt(0); // Reset retry counter on success
       } catch (err) {
         console.error("Lỗi khi tải tin tức:", err);
-        
+
         // Chỉ hiển thị lỗi và thử lại khi không phải lần mount đầu tiên
         if (!isInitialMount) {
           if (retryAttempt < maxRetries) {
-            setRetryAttempt(prev => prev + 1);
+            setRetryAttempt((prev) => prev + 1);
             setTimeout(() => fetchNews(), 2000);
           } else {
-            const errorMessage = !navigator.onLine 
+            const errorMessage = !navigator.onLine
               ? "Không có kết nối internet. Vui lòng kiểm tra lại kết nối."
               : err.code === "ECONNABORTED"
               ? "Server phản hồi quá chậm. Vui lòng thử lại sau."
               : "Không thể kết nối đến máy chủ. Vui lòng thử lại sau.";
-            
+
             setError(errorMessage);
             toast.error(errorMessage);
           }
@@ -987,8 +1000,8 @@ const NewsPage = () => {
     );
   }, [filteredNews, currentPage, itemsPerPage]);
 
-  const totalPages = useMemo(() => 
-    Math.ceil(filteredNews.length / itemsPerPage),
+  const totalPages = useMemo(
+    () => Math.ceil(filteredNews.length / itemsPerPage),
     [filteredNews.length, itemsPerPage]
   );
 
@@ -1154,7 +1167,7 @@ const NewsPage = () => {
 
           <div className="flex items-center justify-between border-t border-b border-gray-200 dark:border-gray-700 py-4 mb-8">
             <div className="flex items-center gap-4">
-          <button
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleHeart(news.id);
@@ -1164,10 +1177,10 @@ const NewsPage = () => {
                     ? "bg-red-50 text-red-500 dark:bg-gray-700"
                     : "hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
-          >
+              >
                 <FiHeart className={hearts[news.id] ? "fill-current" : ""} />
                 <span>{hearts[news.id] ? "Đã thích" : "Thích"}</span>
-          </button>
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1219,29 +1232,29 @@ const NewsPage = () => {
           </div>
 
           <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4 dark:text-white">
+            <h3 className="text-xl font-semibold mb-4 dark:text-white">
               Bình luận ({(comments[news.id] || []).length})
-              </h3>
+            </h3>
             <div className="flex gap-4 mb-6">
-                  <input
-                    type="text"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Viết bình luận của bạn..."
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Viết bình luận của bạn..."
                 className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-red-400"
-                  />
-                  <button
+              />
+              <button
                 onClick={() => {
                   if (newComment.trim()) {
                     handleComment(news.id, newComment);
                     setNewComment("");
                   }
                 }}
-                    className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                  >
-                    Gửi
-                  </button>
-                </div>
+                className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Gửi
+              </button>
+            </div>
             <CommentSection
               comments={comments[news.id] || []}
               onAddComment={(text) => handleComment(news.id, text)}
