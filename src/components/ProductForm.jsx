@@ -22,7 +22,7 @@ import {
   FaStar,
 } from "react-icons/fa";
 
-const MAX_IMAGES = 5; // Giới hạn số lượng ảnh tối đa
+const MAX_IMAGES = 5;
 
 const ProductForm = ({
   formData,
@@ -35,7 +35,7 @@ const ProductForm = ({
 }) => {
   const [previewImages, setPreviewImages] = useState(formData.images || []);
   const [showImagePreview, setShowImagePreview] = useState(false);
-  const [uploadMethod, setUploadMethod] = useState("url"); // url, file, camera
+  const [uploadMethod, setUploadMethod] = useState("url");
   const fileInputRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
@@ -51,7 +51,6 @@ const ProductForm = ({
     size: true,
     format: true,
   });
-  const [isDragging, setIsDragging] = useState(false);
   const [draggedImage, setDraggedImage] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -61,7 +60,6 @@ const ProductForm = ({
 
   useEffect(() => {
     return () => {
-      // Cleanup camera stream when component unmounts
       if (cameraStream) {
         cameraStream.getTracks().forEach((track) => track.stop());
       }
@@ -73,19 +71,11 @@ const ProductForm = ({
     if (value) {
       const updatedImages = [...formData.images, value];
       handleInputChange({
-        target: {
-          name: "images",
-          value: updatedImages,
-        },
+        target: { name: "images", value: updatedImages },
       });
-      handleInputChange({
-        target: {
-          name: "img",
-          value: value,
-        },
-      });
+      handleInputChange({ target: { name: "img", value: value } });
     }
-    e.target.value = ""; // Reset input
+    e.target.value = "";
   };
 
   const handleFileUpload = (files) => {
@@ -103,47 +93,25 @@ const ProductForm = ({
     const processFile = (file) => {
       return new Promise((resolve) => {
         const reader = new FileReader();
-        reader.onloadend = () => {
-          resolve(reader.result);
-        };
+        reader.onloadend = () => resolve(reader.result);
         reader.readAsDataURL(file);
       });
     };
 
     Promise.all(filesToProcess.map(processFile)).then((results) => {
       const newImages = [...updatedImages, ...results];
-      handleInputChange({
-        target: {
-          name: "images",
-          value: newImages,
-        },
-      });
-
-      // Nếu chưa có ảnh đại diện, lấy ảnh đầu tiên làm ảnh đại diện
+      handleInputChange({ target: { name: "images", value: newImages } });
       if (!formData.img) {
-        handleInputChange({
-          target: {
-            name: "img",
-            value: results[0],
-          },
-        });
+        handleInputChange({ target: { name: "img", value: results[0] } });
       }
     });
   };
 
   const removeImage = (index) => {
     const updatedImages = formData.images.filter((_, i) => i !== index);
+    handleInputChange({ target: { name: "images", value: updatedImages } });
     handleInputChange({
-      target: {
-        name: "images",
-        value: updatedImages,
-      },
-    });
-    handleInputChange({
-      target: {
-        name: "img",
-        value: updatedImages[0] || "",
-      },
+      target: { name: "img", value: updatedImages[0] || "" },
     });
     setImageError((prev) => {
       const newErrors = { ...prev };
@@ -159,13 +127,12 @@ const ProductForm = ({
         for (let i = 0; i < items.length; i++) {
           if (items[i].type.indexOf("image") !== -1) {
             const file = items[i].getAsFile();
-            handleFileUpload(file);
+            handleFileUpload([file]);
             break;
           }
         }
       }
     };
-
     document.addEventListener("paste", handlePaste);
     return () => document.removeEventListener("paste", handlePaste);
   }, []);
@@ -219,105 +186,33 @@ const ProductForm = ({
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-
       const ctx = canvas.getContext("2d");
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
       const imageData = canvas.toDataURL("image/jpeg", 0.8);
       const updatedImages = [...formData.images, imageData];
-
-      handleInputChange({
-        target: {
-          name: "images",
-          value: updatedImages,
-        },
-      });
-      handleInputChange({
-        target: {
-          name: "img",
-          value: imageData,
-        },
-      });
-
+      handleInputChange({ target: { name: "images", value: updatedImages } });
+      handleInputChange({ target: { name: "img", value: imageData } });
       stopCamera();
     }
   };
 
-  const retakePhoto = () => {
-    setImageError({});
-    startCamera();
-  };
-
-  const renderUploadError = () => {
-    if (!imageValidation.size || !imageValidation.format) {
-      return (
-        <div className="mt-2 text-sm text-red-600">
-          {!imageValidation.size && (
-            <p>Kích thước file không được vượt quá 5MB</p>
-          )}
-          {!imageValidation.format && (
-            <p>Chỉ chấp nhận file ảnh định dạng JPG, PNG, GIF</p>
-          )}
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const renderUploadProgress = () => {
-    if (isUploading) {
-      return (
-        <div className="mt-2">
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${uploadProgress}%` }}
-            ></div>
-          </div>
-          <p className="text-sm text-gray-600 mt-1">
-            Đang tải lên... {Math.round(uploadProgress)}%
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  // Xử lý kéo thả để sắp xếp lại ảnh
-  const handleDragStart = (e, index) => {
-    setDraggedImage(index);
-  };
+  const handleDragStart = (e, index) => setDraggedImage(index);
 
   const handleDragOver = (e, index) => {
     e.preventDefault();
     if (draggedImage === null) return;
-
     const newImages = [...formData.images];
     const draggedItem = newImages[draggedImage];
     newImages.splice(draggedImage, 1);
     newImages.splice(index, 0, draggedItem);
-
-    handleInputChange({
-      target: {
-        name: "images",
-        value: newImages,
-      },
-    });
-    handleInputChange({
-      target: {
-        name: "img",
-        value: newImages[0] || "",
-      },
-    });
+    handleInputChange({ target: { name: "images", value: newImages } });
+    handleInputChange({ target: { name: "img", value: newImages[0] || "" } });
     setDraggedImage(index);
   };
 
-  const handleDragEnd = () => {
-    setDraggedImage(null);
-  };
+  const handleDragEnd = () => setDraggedImage(null);
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
@@ -329,9 +224,7 @@ const ProductForm = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Cột trái */}
         <div className="space-y-4">
-          {/* Danh mục */}
           <div className="form-group">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Danh mục
@@ -347,8 +240,6 @@ const ProductForm = ({
               <option value="kids">Trẻ em</option>
             </select>
           </div>
-
-          {/* Tên sản phẩm */}
           <div className="form-group">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tên sản phẩm
@@ -362,8 +253,6 @@ const ProductForm = ({
               className="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-
-          {/* Giá và số lượng */}
           <div className="grid grid-cols-2 gap-4">
             <div className="form-group">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -398,14 +287,10 @@ const ProductForm = ({
               </div>
             </div>
           </div>
-
-          {/* Upload area */}
           <div className="form-group space-y-3">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Hình ảnh sản phẩm
             </label>
-
-            {/* Upload methods */}
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -416,8 +301,7 @@ const ProductForm = ({
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                <FaLink className="mr-1" />
-                URL
+                <FaLink className="mr-1" /> URL
               </button>
               <button
                 type="button"
@@ -428,8 +312,7 @@ const ProductForm = ({
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                <FaUpload className="mr-1" />
-                Tải lên
+                <FaUpload className="mr-1" /> Tải lên
               </button>
               <button
                 type="button"
@@ -440,20 +323,9 @@ const ProductForm = ({
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                <FaCamera className="mr-1" />
-                Chụp ảnh
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowQRScanner(true)}
-                className="flex items-center px-3 py-1.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
-              >
-                <FaQrcode className="mr-1" />
-                Quét QR
+                <FaCamera className="mr-1" /> Chụp ảnh
               </button>
             </div>
-
-            {/* Upload area */}
             <div className="relative">
               {uploadMethod === "url" && (
                 <div className="relative">
@@ -468,7 +340,6 @@ const ProductForm = ({
                   />
                 </div>
               )}
-
               {uploadMethod === "file" && (
                 <div
                   className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-300 ${
@@ -503,11 +374,8 @@ const ProductForm = ({
                   <p className="text-sm text-gray-500 mt-1">
                     Hỗ trợ: PNG, JPG, GIF (tối đa 5MB)
                   </p>
-                  {renderUploadError()}
-                  {renderUploadProgress()}
                 </div>
               )}
-
               {uploadMethod === "camera" && (
                 <div className="space-y-3">
                   <div className="relative border-2 border-dashed rounded-lg overflow-hidden">
@@ -526,16 +394,14 @@ const ProductForm = ({
                               onClick={captureImage}
                               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
                             >
-                              <FaCamera className="mr-2" />
-                              Chụp ảnh
+                              <FaCamera className="mr-2" /> Chụp ảnh
                             </button>
                             <button
                               type="button"
                               onClick={stopCamera}
                               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center"
                             >
-                              <FaTimesCircle className="mr-2" />
-                              Hủy
+                              <FaTimesCircle className="mr-2" /> Hủy
                             </button>
                           </div>
                         </div>
@@ -548,8 +414,7 @@ const ProductForm = ({
                           onClick={startCamera}
                           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center mx-auto"
                         >
-                          <FaCamera className="mr-2" />
-                          Mở camera
+                          <FaCamera className="mr-2" /> Mở camera
                         </button>
                       </div>
                     )}
@@ -558,8 +423,6 @@ const ProductForm = ({
                 </div>
               )}
             </div>
-
-            {/* Multiple Images Preview */}
             <div className="mt-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">
@@ -579,11 +442,6 @@ const ProductForm = ({
                     }`}
                   >
                     <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-50 border border-gray-200">
-                      {imageLoading && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                      )}
                       {imageError[index] ? (
                         <div className="flex items-center justify-center h-full">
                           <div className="text-center">
@@ -597,12 +455,12 @@ const ProductForm = ({
                             src={image}
                             alt={`Product ${index + 1}`}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                            onError={() => {
+                            onError={() =>
                               setImageError((prev) => ({
                                 ...prev,
                                 [index]: true,
-                              }));
-                            }}
+                              }))
+                            }
                           />
                           <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-40 transition-opacity"></div>
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -631,7 +489,6 @@ const ProductForm = ({
           </div>
         </div>
 
-        {/* Modal xem ảnh phóng to */}
         {selectedImage && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
@@ -656,9 +513,7 @@ const ProductForm = ({
           </div>
         )}
 
-        {/* Cột phải */}
         <div className="space-y-4">
-          {/* Màu sắc */}
           <div className="form-group">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Màu sắc
@@ -687,8 +542,6 @@ const ProductForm = ({
               </div>
             )}
           </div>
-
-          {/* Kích cỡ */}
           <div className="form-group">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Kích cỡ
@@ -725,8 +578,6 @@ const ProductForm = ({
               </div>
             )}
           </div>
-
-          {/* Mô tả */}
           <div className="form-group">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Mô tả sản phẩm
@@ -746,7 +597,6 @@ const ProductForm = ({
         </div>
       </div>
 
-      {/* Buttons */}
       <div className="mt-6 flex flex-wrap gap-4">
         <button
           onClick={() => handleSubmit("add")}
@@ -793,8 +643,7 @@ const ProductForm = ({
               : "bg-gray-600 hover:bg-gray-700"
           } transition-colors`}
         >
-          <FaUndo className="mr-2" />
-          Làm mới
+          <FaUndo className="mr-2" /> Làm mới
         </button>
       </div>
     </div>

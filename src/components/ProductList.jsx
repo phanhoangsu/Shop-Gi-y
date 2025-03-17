@@ -25,11 +25,9 @@ const ProductList = ({
   handleBulkAction,
   setCurrentView,
 }) => {
-  // State cho search
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [stockRange, setStockRange] = useState({ min: "", max: "" });
 
-  // Lọc sản phẩm dựa trên điều kiện tìm kiếm
   const searchedProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesSearch = product.name
@@ -46,7 +44,6 @@ const ProductList = ({
     });
   }, [products, searchTerm, priceRange, stockRange]);
 
-  // Tính toán thống kê
   const stats = useMemo(() => {
     const totalValue = searchedProducts.reduce(
       (sum, product) =>
@@ -66,17 +63,11 @@ const ProductList = ({
         ).toFixed(2)
       : 0;
 
-    return {
-      totalValue,
-      totalStock,
-      avgPrice,
-    };
+    return { totalValue, totalStock, avgPrice };
   }, [searchedProducts]);
 
-  // Hàm để render các size badge
   const renderSizeBadges = (sizes) => {
     if (!sizes || sizes.length === 0) return "Không có";
-
     return (
       <div className="flex flex-wrap gap-1 items-center">
         <FaRuler className="text-orange-500 mr-2" />
@@ -96,7 +87,6 @@ const ProductList = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Toolbar */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
@@ -153,7 +143,6 @@ const ProductList = ({
         </div>
       </div>
 
-      {/* Bảng sản phẩm */}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50">

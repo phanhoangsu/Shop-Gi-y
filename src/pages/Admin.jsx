@@ -49,7 +49,6 @@ const Admin = () => {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const availableSizes = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43];
 
-  // Mock data cho dashboard
   const mockChartData = [
     { name: "T1", revenue: 4000 },
     { name: "T2", revenue: 3000 },
@@ -140,6 +139,7 @@ const Admin = () => {
       "formData:",
       formDataRef.current
     );
+
     if (action === "update" && !formDataRef.current._id) {
       showNotification("error", "Vui lòng chọn sản phẩm để cập nhật!");
       return;
@@ -161,26 +161,39 @@ const Admin = () => {
       console.log("Submitting:", { action, data: submitData });
       switch (action) {
         case "add":
-          await request("POST", "/su/product", {
-            ...submitData,
-            createdAt: Date.now(),
-          });
+          await request("POST", "/su/product", submitData);
           showNotification("success", "Thêm sản phẩm thành công!");
           break;
+
         case "update":
-          await request(
-            "PUT",
-            `/su/product/${formDataRef.current._id}`,
-            submitData
-          );
+          if (formDataRef.current._id) {
+            await request(
+              "DELETE",
+              "/su/product/",
+              {},
+              formDataRef.current._id
+            );
+            showNotification("success", "Đã xóa sản phẩm cũ!");
+          }
+          await request("POST", "/su/product", {
+            ...submitData,
+            _id: undefined, // Không gửi _id cũ để tạo mới
+          });
           showNotification("success", "Cập nhật sản phẩm thành công!");
           break;
+
         case "delete":
           if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-            await request("DELETE", `/su/product/${formDataRef.current._id}`);
+            await request(
+              "DELETE",
+              "/su/product/",
+              {},
+              formDataRef.current._id
+            );
             showNotification("success", "Xóa sản phẩm thành công!");
           }
           break;
+
         default:
           throw new Error("Hành động không hợp lệ");
       }
@@ -247,7 +260,7 @@ const Admin = () => {
           try {
             await Promise.all(
               selectedProducts.map((id) =>
-                request("DELETE", `/su/product/${id}`)
+                request("DELETE", "/su/product/", {}, id)
               )
             );
             showNotification("success", "Xóa sản phẩm thành công!");
@@ -258,7 +271,6 @@ const Admin = () => {
           }
         }
         break;
-      // Thêm các action khác ở đây
     }
   };
 
@@ -277,10 +289,7 @@ const Admin = () => {
       }
       return true;
     })
-    .sort((a, b) => {
-      // Thêm logic sắp xếp ở đây
-      return 0;
-    });
+    .sort((a, b) => 0);
 
   const renderDashboard = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -297,7 +306,6 @@ const Admin = () => {
           </div>
         </div>
       </div>
-
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="flex items-center justify-between">
           <div>
@@ -309,7 +317,6 @@ const Admin = () => {
           </div>
         </div>
       </div>
-
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="flex items-center justify-between">
           <div>
@@ -321,7 +328,6 @@ const Admin = () => {
           </div>
         </div>
       </div>
-
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="flex items-center justify-between">
           <div>
@@ -333,8 +339,6 @@ const Admin = () => {
           </div>
         </div>
       </div>
-
-      {/* Biểu đồ */}
       <div className="col-span-1 md:col-span-2 lg:col-span-4 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
           Biểu đồ doanh thu
@@ -405,7 +409,6 @@ const Admin = () => {
         return (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold mb-4">Cài đặt hệ thống</h2>
-            {/* Thêm nội dung cài đặt ở đây */}
           </div>
         );
       default:
@@ -430,7 +433,6 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -529,10 +531,7 @@ const Admin = () => {
         </nav>
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
           <button
-            onClick={() => {
-              // Xử lý đăng xuất
-              console.log("Logging out...");
-            }}
+            onClick={() => console.log("Logging out...")}
             className="w-full flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg"
           >
             <FaSignOutAlt className="mr-3" />
@@ -541,13 +540,11 @@ const Admin = () => {
         </div>
       </div>
 
-      {/* Main content */}
       <div
         className={`transition-all duration-300 ${
           sidebarOpen ? "ml-64" : "ml-0"
         }`}
       >
-        {/* Header */}
         <header className="bg-white border-b border-gray-200">
           <div className="flex items-center justify-between px-4 py-3">
             <button
@@ -569,7 +566,6 @@ const Admin = () => {
           </div>
         </header>
 
-        {/* Page content */}
         <main className="p-4">
           {notification && (
             <div

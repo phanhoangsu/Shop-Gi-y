@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   FiSearch,
   FiShare2,
@@ -134,6 +134,31 @@ const BannerSlider = ({ news = [] }) => {
   );
 };
 
+// Memoized BannerSlider component
+const MemoizedBannerSlider = React.memo(BannerSlider);
+
+// Custom hook for localStorage
+const useLocalStorage = (key, initialValue) => {
+  const [value, setValue] = useState(() => {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error(`Error saving to localStorage key "${key}":`, error);
+    }
+  }, [key, value]);
+
+  return [value, setValue];
+};
+
 // Custom hooks
 const useIsNewNews = () => {
   return useCallback((date) => {
@@ -188,7 +213,7 @@ const NewsGrid = ({
               <OptimizedImage
                 src={item.image}
                 alt={item.title}
-                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover"
               />
               {item.tags?.includes("ưu đãi") && (
                 <span className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-medium">
@@ -275,6 +300,9 @@ const NewsGrid = ({
     </div>
   );
 };
+
+// Memoized NewsGrid component
+const MemoizedNewsGrid = React.memo(NewsGrid);
 
 // Component ProductCard
 const ProductCard = ({ product }) => {
@@ -749,61 +777,118 @@ const Navigation = ({
   );
 };
 
+// Custom hook for filtering news
+const useNewsFiltering = (newsData, filters) => {
+  const {
+    selectedCategory,
+    searchTerm,
+    dateRange,
+    selectedTags,
+    sortBy,
+    bookmarks,
+  } = filters;
+
+  return useMemo(() => {
+    let filtered = [...newsData];
+
+    if (selectedCategory === "Đã Lưu") {
+      filtered = filtered.filter((news) => bookmarks.includes(news.id));
+    } else if (selectedCategory !== "Tất cả") {
+      filtered = filtered.filter((news) =>
+        news.tags.includes(selectedCategory)
+      );
+    }
+
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const searchTerms = searchLower.split(" ").filter(term => term.length > 0);
+      filtered = filtered.filter(
+        (news) =>
+          searchTerms.every(term => 
+            news.title.toLowerCase().includes(term) ||
+            news.description.toLowerCase().includes(term) ||
+            news.tags.some((tag) => tag.toLowerCase().includes(term))
+          )
+      );
+    }
+
+    if (dateRange.start && dateRange.end) {
+      const startDate = new Date(dateRange.start);
+      const endDate = new Date(dateRange.end);
+      filtered = filtered.filter((news) => {
+        const newsDate = new Date(news.date);
+        return newsDate >= startDate && newsDate <= endDate;
+      });
+    }
+
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((news) =>
+        selectedTags.every((tag) => news.tags.includes(tag))
+      );
+    }
+
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "date-desc":
+          return new Date(b.date) - new Date(a.date);
+        case "date-asc":
+          return new Date(a.date) - new Date(b.date);
+        case "title":
+          return a.title.localeCompare(b.title);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [newsData, selectedCategory, searchTerm, dateRange, selectedTags, sortBy, bookmarks]);
+};
+
+// Utility function for API error handling
+const getErrorMessage = (error) => {
+  if (!navigator.onLine) {
+    return "Không có kết nối internet. Vui lòng kiểm tra lại kết nối và thử lại.";
+  }
+  if (error.code === "ECONNABORTED") {
+    return "Server phản hồi quá chậm. Vui lòng thử lại sau.";
+  }
+  if (error.response?.status === 404) {
+    return "Không tìm thấy dữ liệu tin tức.";
+  }
+  if (error.response?.status >= 500) {
+    return "Máy chủ đang gặp sự cố. Vui lòng thử lại sau.";
+  }
+  return "Không thể kết nối đến máy chủ. Vui lòng thử lại sau.";
+};
+
 // Main NewsPage Component
 const NewsPage = () => {
   const [newsData, setNewsData] = useState([]);
-  const [isLoadingApi, setIsLoadingApi] = useState(true);
+  const [isLoadingApi, setIsLoadingApi] = useState(false);
   const [error, setError] = useState(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+  const maxRetries = 3;
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedNews, setSelectedNews] = useState(null);
-  const [savedNews, setSavedNews] = useState([]);
   const [sortBy, setSortBy] = useState("date-desc");
   const [darkMode, setDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState("text-base");
   const [viewMode, setViewMode] = useState("grid");
-  const [comments, setComments] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("newsComments")) || {};
-    } catch {
-      return {};
-    }
-  });
-  const [hearts, setHearts] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("newsHearts")) || {};
-    } catch {
-      return {};
-    }
-  });
-  const [readHistory, setReadHistory] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("readHistory")) || [];
-    } catch {
-      return [];
-    }
-  });
-  const [bookmarks, setBookmarks] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("newsBookmarks")) || [];
-    } catch {
-      return [];
-    }
-  });
-  const [searchHistory, setSearchHistory] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("searchHistory")) || [];
-    } catch {
-      return [];
-    }
-  });
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [selectedTags, setSelectedTags] = useState([]);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [ratings, setRatings] = useState({});
+  
+  // Use custom hook for localStorage states
+  const [comments, setComments] = useLocalStorage("newsComments", {});
+  const [hearts, setHearts] = useLocalStorage("newsHearts", {});
+  const [readHistory, setReadHistory] = useLocalStorage("readHistory", []);
+  const [bookmarks, setBookmarks] = useLocalStorage("newsBookmarks", []);
+  const [searchHistory, setSearchHistory] = useLocalStorage("searchHistory", []);
+  const [ratings, setRatings] = useLocalStorage("ratings", {});
   const itemsPerPage = 9;
   const [categories, setCategories] = useState(["Tất cả"]);
 
@@ -817,7 +902,7 @@ const NewsPage = () => {
         const response = await axios.get(
           "https://ngochieuwedding.io.vn/api/su/news",
           {
-            timeout: 5000,
+            timeout: 8000,
             headers: { "Content-Type": "application/json" },
           }
         );
@@ -847,101 +932,64 @@ const NewsPage = () => {
           ...new Set(formattedNews.flatMap((item) => item.tags)),
         ];
         setCategories(uniqueTags);
+        setRetryAttempt(0); // Reset retry counter on success
       } catch (err) {
         console.error("Lỗi khi tải tin tức:", err);
-        setError(
-          err.response?.data?.message ||
-            "Không thể kết nối đến máy chủ. Vui lòng thử lại sau."
-        );
-        toast.error("Không thể kết nối đến máy chủ. Vui lòng thử lại sau.");
+        
+        // Chỉ hiển thị lỗi và thử lại khi không phải lần mount đầu tiên
+        if (!isInitialMount) {
+          if (retryAttempt < maxRetries) {
+            setRetryAttempt(prev => prev + 1);
+            setTimeout(() => fetchNews(), 2000);
+          } else {
+            const errorMessage = !navigator.onLine 
+              ? "Không có kết nối internet. Vui lòng kiểm tra lại kết nối."
+              : err.code === "ECONNABORTED"
+              ? "Server phản hồi quá chậm. Vui lòng thử lại sau."
+              : "Không thể kết nối đến máy chủ. Vui lòng thử lại sau.";
+            
+            setError(errorMessage);
+            toast.error(errorMessage);
+          }
+        }
       } finally {
         setIsLoadingApi(false);
+        setIsInitialMount(false);
       }
     };
 
     fetchNews();
   }, []);
 
-  // Lưu dữ liệu vào localStorage
-  useEffect(() => {
-    localStorage.setItem("newsComments", JSON.stringify(comments));
-  }, [comments]);
+  // Thêm hàm retry thủ công
+  const handleRetry = useCallback(() => {
+    setRetryAttempt(0);
+    setError(null);
+    setIsInitialMount(false);
+    setIsLoadingApi(true);
+    fetchNews();
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem("newsHearts", JSON.stringify(hearts));
-  }, [hearts]);
+  // Use custom hook for filtering
+  const filteredNews = useNewsFiltering(newsData, {
+    selectedCategory,
+    searchTerm,
+    dateRange,
+    selectedTags,
+    sortBy,
+    bookmarks,
+  });
 
-  useEffect(() => {
-    localStorage.setItem("readHistory", JSON.stringify(readHistory));
-  }, [readHistory]);
+  const paginatedNews = useMemo(() => {
+    return filteredNews.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+  }, [filteredNews, currentPage, itemsPerPage]);
 
-  useEffect(() => {
-    localStorage.setItem("newsBookmarks", JSON.stringify(bookmarks));
-  }, [bookmarks]);
-
-  useEffect(() => {
-    localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
-  }, [searchHistory]);
-
-  // Hàm lọc tin tức
-  const getFilteredNews = () => {
-    let filtered = [...newsData];
-
-    if (selectedCategory === "Đã Lưu") {
-      filtered = filtered.filter((news) => bookmarks.includes(news.id));
-    } else if (selectedCategory !== "Tất cả") {
-      filtered = filtered.filter((news) =>
-        news.tags.includes(selectedCategory)
-      );
-    }
-
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (news) =>
-          news.title.toLowerCase().includes(searchLower) ||
-          news.description.toLowerCase().includes(searchLower) ||
-          news.tags.some((tag) => tag.toLowerCase().includes(searchLower))
-      );
-    }
-
-    if (dateRange.start && dateRange.end) {
-      filtered = filtered.filter((news) => {
-        const newsDate = new Date(news.date);
-        return (
-          newsDate >= new Date(dateRange.start) &&
-          newsDate <= new Date(dateRange.end)
-        );
-      });
-    }
-
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter((news) =>
-        selectedTags.every((tag) => news.tags.includes(tag))
-      );
-    }
-
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "date-desc":
-          return new Date(b.date) - new Date(a.date);
-        case "date-asc":
-          return new Date(a.date) - new Date(b.date);
-        case "title":
-          return a.title.localeCompare(b.title);
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
-  };
-
-  const filteredNews = getFilteredNews();
-  const totalPages = Math.ceil(filteredNews.length / itemsPerPage);
-  const paginatedNews = filteredNews.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const totalPages = useMemo(() => 
+    Math.ceil(filteredNews.length / itemsPerPage),
+    [filteredNews.length, itemsPerPage]
   );
 
   const getReadingTime = (wordCount) => Math.ceil(wordCount / 200);
@@ -967,13 +1015,13 @@ const NewsPage = () => {
   };
 
   const handleSave = (news) => {
-    setSavedNews((prev) =>
+    setBookmarks((prev) =>
       prev.includes(news.id)
         ? prev.filter((id) => id !== news.id)
         : [...prev, news.id]
     );
     toast.success(
-      savedNews.includes(news.id) ? "Đã xóa khỏi yêu thích" : "Đã lưu tin tức!"
+      bookmarks.includes(news.id) ? "Đã xóa khỏi yêu thích" : "Đã lưu tin tức!"
     );
   };
 
@@ -1096,16 +1144,17 @@ const NewsPage = () => {
                 <h3 className="text-xl font-semibold dark:text-white">
                   Nội dung chi tiết
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                {/* <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                   {news.content}
-                </p>
+                </p> */}
+                <div dangerouslySetInnerHTML={{ __html: news.content }}></div>
               </div>
             )}
           </div>
 
           <div className="flex items-center justify-between border-t border-b border-gray-200 dark:border-gray-700 py-4 mb-8">
             <div className="flex items-center gap-4">
-              <button
+          <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleHeart(news.id);
@@ -1115,10 +1164,10 @@ const NewsPage = () => {
                     ? "bg-red-50 text-red-500 dark:bg-gray-700"
                     : "hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
-              >
+          >
                 <FiHeart className={hearts[news.id] ? "fill-current" : ""} />
                 <span>{hearts[news.id] ? "Đã thích" : "Thích"}</span>
-              </button>
+          </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1170,29 +1219,29 @@ const NewsPage = () => {
           </div>
 
           <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 dark:text-white">
+              <h3 className="text-xl font-semibold mb-4 dark:text-white">
               Bình luận ({(comments[news.id] || []).length})
-            </h3>
+              </h3>
             <div className="flex gap-4 mb-6">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Viết bình luận của bạn..."
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Viết bình luận của bạn..."
                 className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-red-400"
-              />
-              <button
+                  />
+                  <button
                 onClick={() => {
                   if (newComment.trim()) {
                     handleComment(news.id, newComment);
                     setNewComment("");
                   }
                 }}
-                className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Gửi
-              </button>
-            </div>
+                    className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    Gửi
+                  </button>
+                </div>
             <CommentSection
               comments={comments[news.id] || []}
               onAddComment={(text) => handleComment(news.id, text)}
@@ -1453,7 +1502,7 @@ const NewsPage = () => {
                     {error}
                   </p>
                   <button
-                    onClick={() => window.location.reload()}
+                    onClick={handleRetry}
                     className="px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
                   >
                     Thử lại
@@ -1473,13 +1522,13 @@ const NewsPage = () => {
                       : "Tìm kiếm nâng cao"}
                   </button>
                   {showAdvancedSearch && <AdvancedSearch />}
-                  <BannerSlider news={newsData} />
+                  <MemoizedBannerSlider news={newsData} />
                 </>
               )}
 
               <div id="news-section">
                 {selectedCategory !== "Tất cả" ? (
-                  <NewsGrid
+                  <MemoizedNewsGrid
                     title={`Tin tức ${selectedCategory}`}
                     news={paginatedNews}
                     onNewsClick={handleNewsClick}
@@ -1491,7 +1540,7 @@ const NewsPage = () => {
                   />
                 ) : (
                   <>
-                    <NewsGrid
+                    <MemoizedNewsGrid
                       title="Tin tức nổi bật"
                       news={newsData
                         .filter((news) => news.tags?.includes("ưu đãi"))
@@ -1503,7 +1552,7 @@ const NewsPage = () => {
                       handleHeart={handleHeart}
                       handleShare={handleShare}
                     />
-                    <NewsGrid
+                    <MemoizedNewsGrid
                       title="Tin tức mới nhất"
                       news={paginatedNews}
                       onNewsClick={handleNewsClick}

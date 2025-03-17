@@ -20,6 +20,7 @@ const useApi = () => {
       "data:",
       data
     );
+
     try {
       const url = id ? `${BASE_URL}${endpoint}${id}` : `${BASE_URL}${endpoint}`;
       const resp = await fetch(url, {
@@ -29,13 +30,16 @@ const useApi = () => {
         },
         body: method !== "GET" ? JSON.stringify(data) : undefined,
       });
+
       const result = await resp.json();
       console.log("Response received:", resp.status, result);
+
       if (!resp.ok) {
         throw new Error(
           result.message || `Request failed with status ${resp.status}`
         );
       }
+
       setLoading(false);
       console.log("Request completed - loading:", false);
       return result;
