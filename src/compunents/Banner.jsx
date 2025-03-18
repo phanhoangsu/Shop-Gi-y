@@ -238,8 +238,8 @@ const Banner = () => {
   const navigate = useNavigate();
   const { cart, user, isLoggedIn, logout } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // State for loading
-  const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false); // State for avatar dropdown
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const cartItems = cart?.length || 0;
 
   const handleSearch = (e) => {
@@ -256,10 +256,9 @@ const Banner = () => {
   const handleLogout = () => {
     logout();
     navigate("/");
-    setIsAvatarMenuOpen(false); // Close menu after logout
+    setIsAvatarMenuOpen(false);
   };
 
-  // Handle logo click with loading effect
   const handleLogoClick = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -352,17 +351,15 @@ const Banner = () => {
                 {isAvatarMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                     <ul className="py-1">
-                      {user?.role === "admin" && (
-                        <li
-                          className="px-4 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => {
-                            navigate("/admin");
-                            setIsAvatarMenuOpen(false);
-                          }}
-                        >
-                          Admin
-                        </li>
-                      )}
+                      <li
+                        className="px-4 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          navigate("/admin");
+                          setIsAvatarMenuOpen(false);
+                        }}
+                      >
+                        Admin
+                      </li>
                       <li
                         className="px-4 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
                         onClick={handleLogout}
@@ -441,17 +438,15 @@ const Banner = () => {
                   {isAvatarMenuOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                       <ul className="py-1">
-                        {user?.role === "admin" && (
-                          <li
-                            className="px-4 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
-                            onClick={() => {
-                              navigate("/admin");
-                              setIsAvatarMenuOpen(false);
-                            }}
-                          >
-                            Admin
-                          </li>
-                        )}
+                        <li
+                          className="px-4 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            navigate("/admin");
+                            setIsAvatarMenuOpen(false);
+                          }}
+                        >
+                          Admin
+                        </li>
                         <li
                           className="px-4 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer"
                           onClick={handleLogout}
