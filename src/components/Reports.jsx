@@ -16,32 +16,105 @@ import {
 } from "recharts";
 import { FaDownload, FaCalendar } from "react-icons/fa";
 
-const Reports = () => {
+const Reports = ({ orders, customers }) => {
   const [dateRange, setDateRange] = useState("week");
 
-  // Mock data cho biểu đồ
-  const salesData = [
-    { name: "T2", sales: 4000, orders: 24 },
-    { name: "T3", sales: 3000, orders: 18 },
-    { name: "T4", sales: 2000, orders: 12 },
-    { name: "T5", sales: 2780, orders: 16 },
-    { name: "T6", sales: 1890, orders: 11 },
-    { name: "T7", sales: 2390, orders: 14 },
-    { name: "CN", sales: 3490, orders: 21 },
-  ];
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
 
-  const categoryData = [
-    { name: "Giày Nam", value: 400 },
-    { name: "Giày Nữ", value: 300 },
-    { name: "Giày Trẻ Em", value: 200 },
-    { name: "Phụ Kiện", value: 100 },
-  ];
+  // Lọc dữ liệu theo khoảng thời gian
+  const filterDataByRange = (data) => {
+    const now = new Date();
+    let days;
+    switch (dateRange) {
+      case "week":
+        days = 7;
+        break;
+      case "month":
+        days = 30;
+        break;
+      case "year":
+        days = 365;
+        break;
+      default:
+        days = 7;
+    }
+    const startDate = new Date(now.setDate(now.getDate() - days));
+    return data.filter((item) => new Date(item.date) >= startDate);
+  };
+
+  // Dữ liệu doanh thu và đơn hàng
+  const filteredOrders = filterDataByRange(orders);
+  const salesData = filteredOrders.reduce((acc, order) => {
+    const date = new Date(order.date).toLocaleDateString("en-US", {
+      weekday: "short",
+    });
+    const existing = acc.find((item) => item.name === date);
+    if (existing) {
+      existing.sales += order.total;
+      existing.orders += 1;
+    } else {
+      acc.push({ name: date, sales: order.total, orders: 1 });
+    }
+    return acc;
+  }, []);
+
+  // Dữ liệu danh mục
+  const categoryData = filteredOrders.reduce((acc, order) => {
+    order.cartItems.forEach((item) => {
+      const category = item.category || "Không xác định";
+      const existing = acc.find((c) => c.name === category);
+      if (existing) {
+        existing.value += item.quantity * item.price;
+      } else {
+        acc.push({ name: category, value: item.quantity * item.price });
+      }
+    });
+    return acc;
+  }, []);
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
+  // Thống kê tổng quan
+  const totalRevenue = filteredOrders.reduce(
+    (sum, order) => sum + order.total,
+    0
+  );
+  const totalOrders = filteredOrders.length;
+  const newCustomers = customers.filter(
+    (c) =>
+      new Date(c.joinDate) >=
+      new Date(new Date().setDate(new Date().getDate() - 7))
+  ).length;
+  const conversionRate = totalOrders / (customers.length || 1);
+
   const downloadReport = () => {
-    // Xử lý tải báo cáo
-    console.log("Downloading report...");
+    const csvContent = [
+      ["Thống kê", "Giá trị"],
+      ["Tổng doanh thu", formatCurrency(totalRevenue)],
+      ["Tổng đơn hàng", totalOrders],
+      ["Khách hàng mới", newCustomers],
+      ["Tỷ lệ chuyển đổi", `${(conversionRate * 100).toFixed(2)}%`],
+      ["", ""],
+      ["Ngày", "Doanh thu", "Số đơn hàng"],
+      ...salesData.map((d) => [d.name, formatCurrency(d.sales), d.orders]),
+      ["", ""],
+      ["Danh mục", "Doanh thu"],
+      ...categoryData.map((d) => [d.name, formatCurrency(d.value)]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `report_${dateRange}_${
+      new Date().toISOString().split("T")[0]
+    }.csv`;
+    link.click();
   };
 
   return (
@@ -72,22 +145,26 @@ const Reports = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-500">Tổng doanh thu</div>
-          <div className="text-2xl font-bold text-gray-800">$19,549</div>
+          <div className="text-2xl font-bold text-gray-800">
+            {formatCurrency(totalRevenue)}
+          </div>
           <div className="text-sm text-green-600">+12.5% so với tuần trước</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-500">Tổng đơn hàng</div>
-          <div className="text-2xl font-bold text-gray-800">116</div>
+          <div className="text-2xl font-bold text-gray-800">{totalOrders}</div>
           <div className="text-sm text-green-600">+5.2% so với tuần trước</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-500">Khách hàng mới</div>
-          <div className="text-2xl font-bold text-gray-800">45</div>
+          <div className="text-2xl font-bold text-gray-800">{newCustomers}</div>
           <div className="text-sm text-green-600">+8.1% so với tuần trước</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="text-sm text-gray-500">Tỷ lệ chuyển đổi</div>
-          <div className="text-2xl font-bold text-gray-800">3.24%</div>
+          <div className="text-2xl font-bold text-gray-800">
+            {(conversionRate * 100).toFixed(2)}%
+          </div>
           <div className="text-sm text-red-600">-1.2% so với tuần trước</div>
         </div>
       </div>
@@ -105,7 +182,7 @@ const Reports = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip />
+                <Tooltip formatter={(value) => formatCurrency(value)} />
                 <Legend />
                 <Line
                   type="monotone"
@@ -163,7 +240,7 @@ const Reports = () => {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip formatter={(value) => formatCurrency(value)} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>

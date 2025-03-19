@@ -1,25 +1,21 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FaBox,
+  FaCamera,
+  FaCloudUploadAlt,
+  FaDollarSign,
   FaImage,
+  FaInfoCircle,
+  FaLink,
   FaPalette,
   FaRuler,
-  FaDollarSign,
-  FaTag,
   FaSave,
+  FaSearch,
+  FaTag,
+  FaTimesCircle,
   FaTrash,
   FaUndo,
-  FaInfoCircle,
   FaUpload,
-  FaLink,
-  FaCamera,
-  FaSearch,
-  FaQrcode,
-  FaCloudUploadAlt,
-  FaTimesCircle,
-  FaCheckCircle,
-  FaArrowsAlt,
-  FaStar,
 } from "react-icons/fa";
 
 const MAX_IMAGES = 5;

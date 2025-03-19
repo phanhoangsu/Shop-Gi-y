@@ -1,42 +1,39 @@
-import React, { useState, useEffect, useRef } from "react";
-import useApi from "../hooks/useApi";
-import ProductForm from "../components/ProductForm";
-import ProductList from "../components/ProductList";
-import Orders from "../components/Orders";
-import Customers from "../components/Customers";
-import Reports from "../components/Reports";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  FaBars,
   FaBox,
-  FaShoppingCart,
-  FaUsers,
   FaChartBar,
   FaCog,
-  FaTachometerAlt,
-  FaBars,
-  FaTimes,
-  FaSearch,
-  FaFilter,
-  FaDownload,
-  FaUpload,
-  FaTrash,
-  FaEdit,
+  FaCrown,
+  FaShoppingCart,
   FaSignOutAlt,
+  FaTachometerAlt,
+  FaTimes,
+  FaUsers,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from "recharts";
+import Customers from "../components/Customers";
+import Orders from "../components/Orders";
+import ProductForm from "../components/ProductForm";
+import ProductList from "../components/ProductList";
+import Reports from "../components/Reports";
+import Settings from "../components/Settings";
+import useApi from "../hooks/useApi";
 
 const Admin = () => {
   const { request, loading, error } = useApi();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [notification, setNotification] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentView, setCurrentView] = useState("dashboard");
@@ -48,9 +45,9 @@ const Admin = () => {
   });
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const availableSizes = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43];
 
-  // Thông tin đăng nhập admin hard-coded
   const ADMIN_USERNAME = "admin";
   const ADMIN_PASSWORD = "1234";
 
@@ -59,15 +56,12 @@ const Admin = () => {
     password: "",
   });
 
-  const mockChartData = [
-    { name: "T1", revenue: 4000 },
-    { name: "T2", revenue: 3000 },
-    { name: "T3", revenue: 2000 },
-    { name: "T4", revenue: 2780 },
-    { name: "T5", revenue: 1890 },
-    { name: "T6", revenue: 2390 },
-    { name: "T7", revenue: 3490 },
-  ];
+  const [adminStats, setAdminStats] = useState({
+    newOrders: 0,
+    customers: [],
+    revenue: 0,
+    orders: [],
+  });
 
   const [formData, setFormData] = useState({
     _id: "",
@@ -87,7 +81,6 @@ const Admin = () => {
 
   useEffect(() => {
     formDataRef.current = formData;
-    console.log("Render - formData:", formData, "loading:", loading);
   }, [formData, loading]);
 
   useEffect(() => {
@@ -96,10 +89,25 @@ const Admin = () => {
     }
   }, [isAdminAuthenticated]);
 
+  useEffect(() => {
+    const fetchAdminData = () => {
+      const data = JSON.parse(localStorage.getItem("adminData")) || {
+        newOrders: 0,
+        customers: [],
+        revenue: 0,
+        orders: [],
+      };
+      setAdminStats(data);
+    };
+
+    fetchAdminData();
+    window.addEventListener("storage", fetchAdminData);
+    return () => window.removeEventListener("storage", fetchAdminData);
+  }, []);
+
   const fetchProducts = async () => {
     try {
       const data = await request("GET", "/su/product");
-      console.log("Fetched products:", data);
       if (Array.isArray(data)) {
         setProducts(data);
       } else if (data && typeof data === "object" && Array.isArray(data.data)) {
@@ -168,13 +176,6 @@ const Admin = () => {
   };
 
   const handleSubmit = async (action) => {
-    console.log(
-      "handleSubmit called with action:",
-      action,
-      "formData:",
-      formDataRef.current
-    );
-
     if (action === "update" && !formDataRef.current._id) {
       showNotification("error", "Vui lòng chọn sản phẩm để cập nhật!");
       return;
@@ -187,13 +188,11 @@ const Admin = () => {
     };
 
     try {
-      console.log("Submitting:", { action, data: submitData });
       switch (action) {
         case "add":
           await request("POST", "/su/product", submitData);
           showNotification("success", "Thêm sản phẩm thành công!");
           break;
-
         case "update":
           if (formDataRef.current._id) {
             await request(
@@ -210,7 +209,6 @@ const Admin = () => {
           });
           showNotification("success", "Cập nhật sản phẩm thành công!");
           break;
-
         case "delete":
           if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
             await request(
@@ -222,7 +220,6 @@ const Admin = () => {
             showNotification("success", "Xóa sản phẩm thành công!");
           }
           break;
-
         default:
           throw new Error("Hành động không hợp lệ");
       }
@@ -238,7 +235,6 @@ const Admin = () => {
   };
 
   const handleEdit = (product) => {
-    console.log("Editing product:", product);
     const updatedFormData = {
       _id: product._id || "",
       category: product.category || "nam",
@@ -253,7 +249,6 @@ const Admin = () => {
       sizes: product.sizes ? product.sizes.sort((a, b) => a - b) : [],
     };
     setFormData(updatedFormData);
-    console.log("formData after set:", updatedFormData);
     setCurrentView("form");
   };
 
@@ -272,7 +267,6 @@ const Admin = () => {
       sizes: [],
     };
     setFormData(resetData);
-    console.log("formData after reset:", resetData);
   };
 
   const handleBulkAction = async (action) => {
@@ -303,6 +297,19 @@ const Admin = () => {
     }
   };
 
+  const handleLogoClick = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      navigate("/admin");
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  const handleUpdatePassword = (newPassword) => {
+    console.log("Mật khẩu mới:", newPassword);
+    // Thêm logic cập nhật mật khẩu nếu cần
+  };
+
   const filteredProducts = products
     .filter((product) => {
       if (filters.category !== "all" && product.category !== filters.category)
@@ -319,6 +326,26 @@ const Admin = () => {
       return true;
     })
     .sort((a, b) => 0);
+
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+
+  const chartData = adminStats.orders.reduce((acc, order) => {
+    const date = new Date(order.date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    const existing = acc.find((item) => item.name === date);
+    if (existing) {
+      existing.revenue += order.total;
+    } else {
+      acc.push({ name: date, revenue: order.total });
+    }
+    return acc;
+  }, []);
 
   const renderDashboard = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -339,7 +366,9 @@ const Admin = () => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">Đơn hàng mới</p>
-            <h3 className="text-2xl font-bold text-gray-800">25</h3>
+            <h3 className="text-2xl font-bold text-gray-800">
+              {adminStats.newOrders}
+            </h3>
           </div>
           <div className="p-3 bg-green-100 rounded-full">
             <FaShoppingCart className="text-xl text-green-600" />
@@ -350,7 +379,9 @@ const Admin = () => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">Khách hàng</p>
-            <h3 className="text-2xl font-bold text-gray-800">1,245</h3>
+            <h3 className="text-2xl font-bold text-gray-800">
+              {adminStats.customers.length}
+            </h3>
           </div>
           <div className="p-3 bg-purple-100 rounded-full">
             <FaUsers className="text-xl text-purple-600" />
@@ -361,7 +392,9 @@ const Admin = () => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">Doanh thu</p>
-            <h3 className="text-2xl font-bold text-gray-800">$13,245</h3>
+            <h3 className="text-2xl font-bold text-gray-800">
+              {formatCurrency(adminStats.revenue)}
+            </h3>
           </div>
           <div className="p-3 bg-yellow-100 rounded-full">
             <FaChartBar className="text-xl text-yellow-600" />
@@ -374,11 +407,15 @@ const Admin = () => {
         </h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={mockChartData}>
+            <LineChart
+              data={
+                chartData.length ? chartData : [{ name: "No Data", revenue: 0 }]
+              }
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip />
+              <Tooltip formatter={(value) => formatCurrency(value)} />
               <Legend />
               <Line
                 type="monotone"
@@ -477,17 +514,18 @@ const Admin = () => {
           />
         );
       case "orders":
-        return <Orders />;
+        return <Orders orders={adminStats.orders} />;
       case "customers":
-        return <Customers />;
+        return <Customers customers={adminStats.customers} />;
       case "reports":
-        return <Reports />;
-      case "settings":
         return (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-4">Cài đặt hệ thống</h2>
-          </div>
+          <Reports
+            orders={adminStats.orders}
+            customers={adminStats.customers}
+          />
         );
+      case "settings":
+        return <Settings onUpdatePassword={handleUpdatePassword} />;
       default:
         return null;
     }
@@ -502,7 +540,13 @@ const Admin = () => {
           }`}
         >
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-800">Admin Dashboard</h1>
+            <button
+              onClick={handleLogoClick}
+              className="flex items-center space-x-2"
+            >
+              <FaCrown className="text-2xl text-blue-600" />
+              <h1 className="text-xl font-bold text-gray-800">ADMIN</h1>
+            </button>
             <button
               onClick={() => setSidebarOpen(false)}
               className="p-2 rounded-lg hover:bg-gray-100 lg:hidden"
@@ -633,6 +677,11 @@ const Admin = () => {
               }`}
             >
               {notification.message}
+            </div>
+          )}
+          {isLoading && (
+            <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
             </div>
           )}
           {renderContent()}

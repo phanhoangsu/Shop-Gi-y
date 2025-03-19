@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useCart } from "../context/CartContext";
-import { useNavigate } from "react-router-dom";
-import OrderDetails from "../compunents/OrderDetails";
-import CartSummary from "../compunents/CartSummary";
 import BillingForm from "../compunents/BillingForm";
-import ShippingForm from "../compunents/ShippingForm";
-import PaymentOptions from "../compunents/PaymentOptions";
-import OrderTracking from "../compunents/OrderTracking";
 import CartItem from "../compunents/CartItem";
+import CartSummary from "../compunents/CartSummary";
+import OrderDetails from "../compunents/OrderDetails";
+import OrderTracking from "../compunents/OrderTracking";
+import PaymentOptions from "../compunents/PaymentOptions";
+import ShippingForm from "../compunents/ShippingForm";
+import { useCart } from "../context/CartContext";
 
 const CartPage = () => {
   const {
@@ -226,6 +226,62 @@ const CartPage = () => {
     return true;
   };
 
+  const updateAdminData = (newOrder) => {
+    const adminData = {
+      newOrders: 1,
+      customer: {
+        name: newOrder.billingInfo.name || "Khách vãng lai",
+        email: newOrder.billingInfo.email || "",
+        phone: newOrder.billingInfo.phone || "",
+        totalOrders: 1,
+        totalSpent: newOrder.total,
+        status: "active",
+        joinDate: new Date().toISOString().split("T")[0],
+      },
+      revenue: newOrder.total,
+      orderDetails: newOrder,
+    };
+
+    const existingAdminData = JSON.parse(localStorage.getItem("adminData")) || {
+      newOrders: 0,
+      customers: [],
+      revenue: 0,
+      orders: [],
+    };
+
+    const customerExists = existingAdminData.customers.find(
+      (c) =>
+        c.email === adminData.customer.email ||
+        c.phone === adminData.customer.phone
+    );
+
+    let updatedCustomers;
+    if (customerExists) {
+      updatedCustomers = existingAdminData.customers.map((c) =>
+        c.email === adminData.customer.email ||
+        c.phone === adminData.customer.phone
+          ? {
+              ...c,
+              totalOrders: c.totalOrders + 1,
+              totalSpent: c.totalSpent + adminData.customer.totalSpent,
+              status: "active",
+            }
+          : c
+      );
+    } else {
+      updatedCustomers = [...existingAdminData.customers, adminData.customer];
+    }
+
+    const updatedAdminData = {
+      newOrders: existingAdminData.newOrders + 1,
+      customers: updatedCustomers,
+      revenue: existingAdminData.revenue + newOrder.total,
+      orders: [...existingAdminData.orders, newOrder],
+    };
+
+    localStorage.setItem("adminData", JSON.stringify(updatedAdminData));
+  };
+
   const handlePayment = async () => {
     if (!validateInput()) return;
 
@@ -245,15 +301,18 @@ const CartPage = () => {
         status: "Đang xử lý",
       };
 
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Giả lập API
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const newOrder = {
         id: Date.now(),
         ...paymentData,
         date: new Date().toISOString(),
       };
+
       setOrderHistory((prev) => [...prev, newOrder]);
       setLoyaltyPoints((prev) => prev + Math.floor(calculateTotal / 10));
+      updateAdminData(newOrder);
+
       clearCart();
       setDiscount(0);
       setDiscountCode("");
@@ -265,6 +324,24 @@ const CartPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    const newOrder = {
+      id: Date.now(),
+      cartItems: [product],
+      shippingInfo: null,
+      billingInfo: { name: "Khách vãng lai", email: "", phone: "" },
+      paymentMethod: "cash",
+      total: product.price * product.quantity,
+      notes: "Đơn hàng từ thêm sản phẩm",
+      shippingMethod: "standard",
+      status: "Chưa thanh toán",
+      date: new Date().toISOString(),
+    };
+    updateAdminData(newOrder);
+    toast.success("Sản phẩm đã được thêm vào giỏ hàng và gửi đến Admin!");
   };
 
   const handleCancelOrder = (orderId) => {
@@ -361,7 +438,7 @@ const CartPage = () => {
           </h2>
           <button
             onClick={() =>
-              addToCart({
+              handleAddToCart({
                 id: 1,
                 name: "Test Product",
                 price: 10,
