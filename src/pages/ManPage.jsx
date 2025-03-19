@@ -13,13 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import useApi from "../hooks/useApi";
 
-const colorMap = {
-  đen: "#000000",
-  trắng: "#FFFFFF",
-  "xanh đen": "#00008B",
-  "vàng trắng": "#FFFFE0",
-};
-
 const ManPage = () => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -74,10 +67,6 @@ const ManPage = () => {
     }, 30000);
     return () => clearInterval(interval);
   }, []);
-
-  const handleRefresh = () => {
-    fetchProducts();
-  };
 
   useEffect(() => {
     console.log("Search term:", searchTerm);
@@ -220,13 +209,6 @@ const ManPage = () => {
             <FaFilter />
             <span>{isFilterOpen ? "Hide Filters" : "Show Filters"}</span>
           </button>
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200"
-          >
-            <FaSync />
-            <span>Làm mới</span>
-          </button>
         </div>
       </div>
 
@@ -263,12 +245,11 @@ const ManPage = () => {
               {uniqueColors.map((color) => (
                 <button
                   key={color}
-                  className={`w-8 h-8 rounded-full border-2 ${
+                  className={`px-4 py-2 border rounded-lg transition-all ${
                     selectedColors.includes(color)
-                      ? "border-blue-500"
-                      : "border-gray-300"
+                      ? "bg-black text-white border-black"
+                      : "hover:border-black"
                   }`}
-                  style={{ backgroundColor: colorMap[color] || "#ccc" }}
                   onClick={() =>
                     setSelectedColors(
                       selectedColors.includes(color)
@@ -276,7 +257,9 @@ const ManPage = () => {
                         : [...selectedColors, color]
                     )
                   }
-                />
+                >
+                  {color}
+                </button>
               ))}
             </div>
           </div>
@@ -476,21 +459,23 @@ const ManPage = () => {
               </span>
             </div>
 
-            <div className="mb-4">
-              <span className="font-semibold text-gray-700">Color:</span>
-              <div className="flex gap-3 mt-2">
+            {/* Updated Color Section (Text-based) */}
+            <div className="mb-6">
+              <h3 className="font-semibold mb-2">Màu sắc:</h3>
+              <div className="flex flex-wrap gap-2">
                 {(selectedProduct.colors || []).length > 0 ? (
                   selectedProduct.colors.map((color) => (
-                    <div
+                    <button
                       key={color}
-                      className={`w-10 h-10 rounded-full border-2 cursor-pointer ${
-                        selectedColor === color
-                          ? "border-blue-500 scale-110"
-                          : "border-gray-300"
-                      } transform transition-all duration-200`}
-                      style={{ backgroundColor: colorMap[color] || "#ccc" }}
                       onClick={() => setSelectedColor(color)}
-                    />
+                      className={`px-4 py-2 border rounded-lg transition-all ${
+                        selectedColor === color
+                          ? "bg-black text-white border-black"
+                          : "hover:border-black"
+                      }`}
+                    >
+                      {color}
+                    </button>
                   ))
                 ) : (
                   <span className="text-gray-500">No colors available</span>

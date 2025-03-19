@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaSearch,
   FaPlus,
@@ -10,13 +10,6 @@ import {
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-
-const colorMap = {
-  đen: "#000000",
-  trắng: "#FFFFFF",
-  "xanh đen": "#00008B",
-  "vàng trắng": "#FFFFE0",
-};
 
 const KidsPage = () => {
   const { addToCart } = useCart();
@@ -51,8 +44,8 @@ const KidsPage = () => {
           "https://ngochieuwedding.io.vn/api/su/product?category=kids"
         );
         const data = await res.json();
-        setProducts(data.data);
-        setFilteredProducts(data.data);
+        setProducts(data.data || []);
+        setFilteredProducts(data.data || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -147,21 +140,21 @@ const KidsPage = () => {
   );
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  const uniqueColors = [...new Set(products.flatMap((p) => p.colors))];
-  const uniqueSizes = [...new Set(products.flatMap((p) => p.sizes))];
+  const uniqueColors = [...new Set(products.flatMap((p) => p.colors || []))];
+  const uniqueSizes = [...new Set(products.flatMap((p) => p.sizes || []))];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* <Helmet>
-        <title>Women's shoes</title>
+      <Helmet>
+        <title>Children's Shoes</title>
         <meta
           name="description"
-          content="Explore our collection of men's shoes"
+          content="Explore our collection of children's shoes"
         />
-      </Helmet> */}
+      </Helmet>
 
       <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-        Children's shoes
+        Children's Shoes
       </h2>
 
       {/* Search Bar and Filter Toggle Button */}
@@ -219,12 +212,11 @@ const KidsPage = () => {
               {uniqueColors.map((color) => (
                 <button
                   key={color}
-                  className={`w-8 h-8 rounded-full border-2 ${
+                  className={`px-4 py-2 border rounded-lg transition-all ${
                     selectedColors.includes(color)
-                      ? "border-blue-500"
-                      : "border-gray-300"
+                      ? "bg-black text-white border-black"
+                      : "hover:border-black"
                   }`}
-                  style={{ backgroundColor: colorMap[color] || "#ccc" }}
                   onClick={() =>
                     setSelectedColors(
                       selectedColors.includes(color)
@@ -232,7 +224,9 @@ const KidsPage = () => {
                         : [...selectedColors, color]
                     )
                   }
-                />
+                >
+                  {color}
+                </button>
               ))}
             </div>
           </div>
@@ -305,8 +299,8 @@ const KidsPage = () => {
             >
               <div className="relative overflow-hidden">
                 <img
-                  src={product.img}
-                  alt={product.name}
+                  src={product.img || "https://via.placeholder.com/150"}
+                  alt={product.name || "Product"}
                   className={`w-full h-56 object-cover rounded-lg mb-3 transition-transform duration-300 ${
                     hoveredProduct === product._id ? "scale-110" : ""
                   }`}
@@ -339,10 +333,11 @@ const KidsPage = () => {
                 className="text-lg font-semibold text-gray-800 truncate"
                 onClick={() => openPopup(product)}
               >
-                {product.name}
+                {product.name || "Unknown Product"}
               </h3>
               <p className="text-red-600 font-bold text-xl">
-                ${product.price.toLocaleString()}
+                $
+                {product.price != null ? product.price.toLocaleString() : "N/A"}
               </p>
             </div>
           ))}
@@ -394,19 +389,22 @@ const KidsPage = () => {
             </button>
 
             <img
-              src={selectedProduct.img}
-              alt={selectedProduct.name}
+              src={selectedProduct.img || "https://via.placeholder.com/150"}
+              alt={selectedProduct.name || "Product"}
               className="w-full h-64 object-cover rounded-lg mb-4"
             />
 
             <h3 className="text-2xl font-bold text-gray-800 mb-2">
-              {selectedProduct.name}
+              {selectedProduct.name || "Unknown Product"}
             </h3>
             <p className="text-red-600 font-bold text-xl mb-3">
-              ${selectedProduct.price.toLocaleString()}
+              $
+              {selectedProduct.price != null
+                ? selectedProduct.price.toLocaleString()
+                : "N/A"}
             </p>
             <p className="text-gray-600 mb-4 text-base leading-relaxed">
-              {selectedProduct.description}
+              {selectedProduct.description || "No description available."}
             </p>
 
             <div className="mb-4">
@@ -422,40 +420,50 @@ const KidsPage = () => {
               </span>
             </div>
 
-            <div className="mb-4">
-              <span className="font-semibold text-gray-700">Color:</span>
-              <div className="flex gap-3 mt-2">
-                {selectedProduct.colors.map((color) => (
-                  <div
-                    key={color}
-                    className={`w-10 h-10 rounded-full border-2 cursor-pointer ${
-                      selectedColor === color
-                        ? "border-blue-500 scale-110"
-                        : "border-gray-300"
-                    } transform transition-all duration-200`}
-                    style={{ backgroundColor: colorMap[color] || "#ccc" }}
-                    onClick={() => setSelectedColor(color)}
-                  />
-                ))}
+            {/* Updated Color Section (Text-based) */}
+            <div className="mb-6">
+              <h3 className="font-semibold mb-2">Màu sắc:</h3>
+              <div className="flex flex-wrap gap-2">
+                {(selectedProduct.colors || []).length > 0 ? (
+                  selectedProduct.colors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`px-4 py-2 border rounded-lg transition-all ${
+                        selectedColor === color
+                          ? "bg-black text-white border-black"
+                          : "hover:border-black"
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  ))
+                ) : (
+                  <span className="text-gray-500">No colors available</span>
+                )}
               </div>
             </div>
 
             <div className="mb-4">
               <span className="font-semibold text-gray-700">Size:</span>
               <div className="grid grid-cols-5 gap-2 mt-2">
-                {selectedProduct.sizes.map((size) => (
-                  <button
-                    key={size}
-                    className={`px-3 py-2 border rounded-lg font-medium ${
-                      selectedSize === size
-                        ? "bg-blue-500 text-white border-blue-500"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                    } transition duration-200`}
-                    onClick={() => setSelectedSize(size)}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {(selectedProduct.sizes || []).length > 0 ? (
+                  selectedProduct.sizes.map((size) => (
+                    <button
+                      key={size}
+                      className={`px-3 py-2 border rounded-lg font-medium ${
+                        selectedSize === size
+                          ? "bg-blue-500 text-white border-blue-500"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                      } transition duration-200`}
+                      onClick={() => setSelectedSize(size)}
+                    >
+                      {size}
+                    </button>
+                  ))
+                ) : (
+                  <span className="text-gray-500">No sizes available</span>
+                )}
               </div>
             </div>
 
@@ -520,8 +528,8 @@ const KidsPage = () => {
                   .map((product) => (
                     <img
                       key={product._id}
-                      src={product.img}
-                      alt={product.name}
+                      src={product.img || "https://via.placeholder.com/150"}
+                      alt={product.name || "Product"}
                       className="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition duration-200"
                       onClick={() => openPopup(product)}
                     />

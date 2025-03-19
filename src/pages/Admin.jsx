@@ -154,13 +154,7 @@ const Admin = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "colors"
-          ? value
-              .split(",")
-              .map((item) => item.trim())
-              .filter(Boolean)
-          : value,
+      [name]: value,
     }));
   };
 
@@ -183,12 +177,6 @@ const Admin = () => {
 
     if (action === "update" && !formDataRef.current._id) {
       showNotification("error", "Vui lòng chọn sản phẩm để cập nhật!");
-      return;
-    }
-
-    const validationError = validateForm();
-    if (validationError && (action === "add" || action === "update")) {
-      showNotification("error", validationError);
       return;
     }
 
@@ -505,21 +493,6 @@ const Admin = () => {
     }
   };
 
-  const validateForm = () => {
-    if (!formData.name) return "Vui lòng nhập tên sản phẩm!";
-    if (!formData.price || isNaN(formData.price) || Number(formData.price) <= 0)
-      return "Vui lòng nhập giá sản phẩm hợp lệ (lớn hơn 0)!";
-    if (!formData.img) return "Vui lòng nhập URL hình ảnh!";
-    if (!formData.stock || isNaN(formData.stock) || Number(formData.stock) < 0)
-      return "Vui lòng nhập số lượng tồn kho hợp lệ (lớn hơn hoặc bằng 0)!";
-    if (!formData.description) return "Vui lòng nhập mô tả sản phẩm!";
-    if (formData.colors.length === 0)
-      return "Vui lòng nhập ít nhất một màu sắc!";
-    if (formData.sizes.length === 0)
-      return "Vui lòng chọn ít nhất một kích thước!";
-    return null;
-  };
-
   return (
     <div className="min-h-screen bg-gray-100">
       {isAdminAuthenticated && (
@@ -645,16 +618,7 @@ const Admin = () => {
               >
                 <FaBars className="text-gray-600" />
               </button>
-              <div className="flex items-center space-x-4">
-                {/* <div className="text-sm text-gray-600">Admin</div>
-                <div className="relative">
-                  <img
-                    src="https://via.placeholder.com/40"
-                    alt="Avatar"
-                    className="w-8 h-8 rounded-full"
-                  />
-                </div> */}
-              </div>
+              <div className="flex items-center space-x-4"></div>
             </div>
           </header>
         )}

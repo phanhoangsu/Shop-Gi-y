@@ -10,7 +10,6 @@ import LoginPage from "./pages/LoginPage";
 import ManPage from "./pages/ManPage";
 import NewsPage from "./pages/NewsPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import RegisterPage from "./pages/RegisterPage";
 import WomenPage from "./pages/WomenPage";
 
 function App() {
@@ -27,7 +26,6 @@ function App() {
         <Route path="/cart" element={<CartPage />} />
 
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<RegisterPage />} />
 
         <Route path="/news" element={<NewsPage />} />
         <Route path="/admin" element={<Admin />} />

@@ -25,7 +25,7 @@ import {
   FiLink,
   FiCalendar,
 } from "react-icons/fi";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Helmet } from "react-helmet";
 import axios from "axios";
@@ -143,7 +143,8 @@ const useLocalStorage = (key, initialValue) => {
     try {
       const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
-    } catch {
+    } catch (error) {
+      console.error(`Error reading localStorage key "${key}":`, error);
       return initialValue;
     }
   });
@@ -444,6 +445,9 @@ const CommentSection = ({ comments = [], onAddComment, onAddReply }) => {
     }
   };
 
+  // Debug: Log comments to check if they are received correctly
+  console.log("Comments in CommentSection:", comments);
+
   return (
     <div className="mt-8">
       <h3 className="text-xl font-bold mb-4 dark:text-white">Bình luận</h3>
@@ -455,7 +459,7 @@ const CommentSection = ({ comments = [], onAddComment, onAddReply }) => {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Viết bình luận của bạn..."
-            className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600"
+            className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
           <button
             type="submit"
@@ -466,103 +470,97 @@ const CommentSection = ({ comments = [], onAddComment, onAddReply }) => {
         </div>
       </form>
 
-      <div className="space-y-4">
-        {comments.map((comment) => (
-          <div
-            key={comment.id}
-            className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"
-          >
-            <div className="flex items-start gap-4">
-              <img
-                src={comment.avatar || "https://via.placeholder.com/40"}
-                alt={comment.author}
-                className="w-10 h-10 rounded-full"
-              />
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold dark:text-white">
-                    {comment.author || "Ẩn danh"}
-                  </h4>
-                  <span className="text-sm text-gray-500">{comment.date}</span>
-                </div>
-                <p className="mt-1 text-gray-600 dark:text-gray-300">
-                  {comment.content}
-                </p>
-                <div className="mt-2 flex items-center gap-4">
-                  <button
-                    onClick={() => setReplyingTo(comment.id)}
-                    className="text-sm text-gray-500 hover:text-red-500"
-                  >
-                    Trả lời
-                  </button>
-                  <div className="flex items-center gap-1">
-                    <button className="text-gray-500 hover:text-red-500">
-                      <FiHeart />
-                    </button>
+      {comments.length === 0 ? (
+        <p className="text-gray-500">Chưa có bình luận nào.</p>
+      ) : (
+        <div className="space-y-4">
+          {comments.map((comment) => (
+            <div
+              key={comment.id}
+              className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold dark:text-white">
+                      {comment.author || "Ẩn danh"}
+                    </h4>
                     <span className="text-sm text-gray-500">
-                      {comment.likes || 0}
+                      {comment.date}
                     </span>
                   </div>
-                </div>
-
-                {comment.replies && (
-                  <div className="mt-4 ml-8 space-y-4">
-                    {comment.replies.map((reply) => (
-                      <div
-                        key={reply.id}
-                        className="bg-white dark:bg-gray-700 rounded-lg p-4"
-                      >
-                        <div className="flex items-start gap-4">
-                          <img
-                            src={
-                              reply.avatar || "https://via.placeholder.com/32"
-                            }
-                            alt={reply.author}
-                            className="w-8 h-8 rounded-full"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <h5 className="font-semibold dark:text-white">
-                                {reply.author || "Ẩn danh"}
-                              </h5>
-                              <span className="text-sm text-gray-500">
-                                {reply.date}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-gray-600 dark:text-gray-300">
-                              {reply.content}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {replyingTo === comment.id && (
-                  <div className="mt-4 ml-8">
-                    <div className="flex gap-4">
-                      <input
-                        type="text"
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        placeholder="Viết câu trả lời..."
-                        className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600"
-                      />
-                      <button
-                        onClick={() => handleSubmitReply(comment.id)}
-                        className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                      >
-                        Gửi
+                  <p className="mt-1 text-gray-600 dark:text-gray-300">
+                    {comment.text || comment.content}
+                  </p>
+                  <div className="mt-2 flex items-center gap-4">
+                    <button
+                      onClick={() => setReplyingTo(comment.id)}
+                      className="text-sm text-gray-500 hover:text-red-500"
+                    >
+                      Trả lời
+                    </button>
+                    <div className="flex items-center gap-1">
+                      <button className="text-gray-500 hover:text-red-500">
+                        <FiHeart />
                       </button>
+                      <span className="text-sm text-gray-500">
+                        {comment.likes || 0}
+                      </span>
                     </div>
                   </div>
-                )}
+
+                  {comment.replies && (
+                    <div className="mt-4 ml-8 space-y-4">
+                      {comment.replies.map((reply) => (
+                        <div
+                          key={reply.id}
+                          className="bg-white dark:bg-gray-700 rounded-lg p-4"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <h5 className="font-semibold dark:text-white">
+                                  {reply.author || "Ẩn danh"}
+                                </h5>
+                                <span className="text-sm text-gray-500">
+                                  {reply.date}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-gray-600 dark:text-gray-300">
+                                {reply.content}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {replyingTo === comment.id && (
+                    <div className="mt-4 ml-8">
+                      <div className="flex gap-4">
+                        <input
+                          type="text"
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Viết câu trả lời..."
+                          className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                        <button
+                          onClick={() => handleSubmitReply(comment.id)}
+                          className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        >
+                          Gửi
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -699,13 +697,33 @@ const TableOfContents = ({ content }) => {
 
 // Component Header
 const Header = ({ darkMode, setDarkMode, searchTerm, setSearchTerm }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    setTimeout(() => {
+      window.location.href = "/news";
+      setIsLoading(false);
+    }, 1000); // Thời gian chờ 1 giây
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-md z-50">
+    <header className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-md z-40">
       <div className="container mx-auto px-4">
         <div className="h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <a href="/" className="flex items-center space-x-2">
-              <FiMonitor className="text-red-500" size={24} />
+            <a
+              href="/news"
+              onClick={handleLogoClick}
+              className="flex items-center space-x-2 relative"
+            >
+              {isLoading ? (
+                <div className="w-6 h-6 border-2 border-t-2 border-t-red-500 border-gray-300 rounded-full animate-spin"></div>
+              ) : (
+                <FiMonitor className="text-red-500" size={24} />
+              )}
               <h1 className="text-xl font-bold dark:text-white">TechNews</h1>
             </a>
           </div>
@@ -906,6 +924,7 @@ const NewsPage = () => {
   const [categories, setCategories] = useState(["Tất cả"]);
 
   // Fetch dữ liệu từ API
+  let isInitialMount = true;
   useEffect(() => {
     const fetchNews = async () => {
       try {
@@ -949,25 +968,18 @@ const NewsPage = () => {
       } catch (err) {
         console.error("Lỗi khi tải tin tức:", err);
 
-        // Chỉ hiển thị lỗi và thử lại khi không phải lần mount đầu tiên
         if (!isInitialMount) {
           if (retryAttempt < maxRetries) {
             setRetryAttempt((prev) => prev + 1);
             setTimeout(() => fetchNews(), 2000);
           } else {
-            const errorMessage = !navigator.onLine
-              ? "Không có kết nối internet. Vui lòng kiểm tra lại kết nối."
-              : err.code === "ECONNABORTED"
-              ? "Server phản hồi quá chậm. Vui lòng thử lại sau."
-              : "Không thể kết nối đến máy chủ. Vui lòng thử lại sau.";
-
+            const errorMessage = getErrorMessage(err);
             setError(errorMessage);
-            toast.error(errorMessage);
           }
         }
       } finally {
         setIsLoadingApi(false);
-        setIsInitialMount(false);
+        isInitialMount = false;
       }
     };
 
@@ -978,8 +990,60 @@ const NewsPage = () => {
   const handleRetry = useCallback(() => {
     setRetryAttempt(0);
     setError(null);
-    setIsInitialMount(false);
+    isInitialMount = false;
     setIsLoadingApi(true);
+    const fetchNews = async () => {
+      try {
+        setIsLoadingApi(true);
+        setError(null);
+
+        const response = await axios.get(
+          "https://ngochieuwedding.io.vn/api/su/news",
+          {
+            timeout: 8000,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (!response.data?.data) {
+          throw new Error("Không có dữ liệu tin tức");
+        }
+
+        const formattedNews = response.data.data.map((item) => ({
+          id: item._id || Math.random().toString(36).substr(2, 9),
+          title: item.title || "Không có tiêu đề",
+          description: item.description || "Không có mô tả",
+          content: item.body || "",
+          image: item.thumbnail || "https://via.placeholder.com/400x300",
+          date: item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString("vi-VN")
+            : "Không rõ",
+          category: "Tin tức",
+          tags: Array.isArray(item.tags) ? item.tags : [],
+          created_by: item.created_by || "Admin",
+          wordCount: (item.description || "").split(" ").length || 0,
+        }));
+
+        setNewsData(formattedNews);
+        const uniqueTags = [
+          "Tất cả",
+          ...new Set(formattedNews.flatMap((item) => item.tags)),
+        ];
+        setCategories(uniqueTags);
+        setRetryAttempt(0);
+      } catch (err) {
+        console.error("Lỗi khi tải tin tức:", err);
+        if (retryAttempt < maxRetries) {
+          setRetryAttempt((prev) => prev + 1);
+          setTimeout(() => fetchNews(), 2000);
+        } else {
+          const errorMessage = getErrorMessage(err);
+          setError(errorMessage);
+        }
+      } finally {
+        setIsLoadingApi(false);
+      }
+    };
     fetchNews();
   }, []);
 
@@ -1016,14 +1080,13 @@ const NewsPage = () => {
 
       if (platform === "copy") {
         navigator.clipboard.writeText(url);
-        toast.success("Đã sao chép link!");
       } else if (platform === "facebook") {
         window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`);
       } else if (platform === "twitter") {
         window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`);
       }
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi chia sẻ bài viết");
+      console.error("Error sharing news:", error);
     }
   };
 
@@ -1033,9 +1096,6 @@ const NewsPage = () => {
         ? prev.filter((id) => id !== news.id)
         : [...prev, news.id]
     );
-    toast.success(
-      bookmarks.includes(news.id) ? "Đã xóa khỏi yêu thích" : "Đã lưu tin tức!"
-    );
   };
 
   const handleHeart = (newsId) => {
@@ -1043,7 +1103,6 @@ const NewsPage = () => {
 
     setHearts((prev) => {
       const newHearts = { ...prev, [newsId]: !prev[newsId] };
-      toast.success(newHearts[newsId] ? "Đã thích!" : "Đã bỏ thích!");
       return newHearts;
     });
   };
@@ -1055,21 +1114,23 @@ const NewsPage = () => {
       id: Date.now(),
       text: commentText,
       date: new Date().toLocaleString("vi-VN"),
-      user: "Người dùng",
+      author: "Người dùng",
       avatar: "https://via.placeholder.com/40",
       likes: 0,
     };
 
-    setComments((prev) => ({
-      ...prev,
-      [newsId]: [...(prev[newsId] || []), newComment],
-    }));
-    toast.success("Đã thêm bình luận!");
+    setComments((prev) => {
+      const updatedComments = {
+        ...prev,
+        [newsId]: [...(prev[newsId] || []), newComment],
+      };
+      console.log("Updated comments:", updatedComments); // Debug
+      return updatedComments;
+    });
   };
 
   const handleSubscribe = (e) => {
     e.preventDefault();
-    toast.success("Đăng ký nhận tin thành công!");
   };
 
   const handleNewsClick = (news) => {
@@ -1100,9 +1161,9 @@ const NewsPage = () => {
       .slice(0, 3);
 
     useEffect(() => {
-      // Thay thế cho UNSAFE_componentWillMount
       console.log("NewsDetail mounted:", news);
-    }, [news]);
+      console.log("Comments for this news:", comments[news.id]); // Debug
+    }, [news, comments]);
 
     return (
       <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
@@ -1157,9 +1218,6 @@ const NewsPage = () => {
                 <h3 className="text-xl font-semibold dark:text-white">
                   Nội dung chi tiết
                 </h3>
-                {/* <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {news.content}
-                </p> */}
                 <div dangerouslySetInnerHTML={{ __html: news.content }}></div>
               </div>
             )}
@@ -1241,7 +1299,7 @@ const NewsPage = () => {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Viết bình luận của bạn..."
-                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-red-400"
+                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-red-400 dark:text-white"
               />
               <button
                 onClick={() => {
@@ -1275,7 +1333,6 @@ const NewsPage = () => {
                       : c
                   ),
                 }));
-                toast.success("Đã thêm trả lời!");
               }}
             />
           </div>
@@ -1320,7 +1377,6 @@ const NewsPage = () => {
       ...prev,
       [newsId]: rating,
     }));
-    toast.success("Cảm ơn bạn đã đánh giá!");
   };
 
   const handleBookmark = (news) => {
@@ -1330,11 +1386,6 @@ const NewsPage = () => {
       const newBookmarks = prev.includes(news.id)
         ? prev.filter((id) => id !== news.id)
         : [...prev, news.id];
-      toast.success(
-        newBookmarks.includes(news.id)
-          ? "Đã thêm vào bookmark"
-          : "Đã xóa khỏi bookmark"
-      );
       return newBookmarks;
     });
   };
@@ -1374,7 +1425,7 @@ const NewsPage = () => {
             onChange={(e) =>
               setDateRange((prev) => ({ ...prev, start: e.target.value }))
             }
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
         </div>
         <div>
@@ -1387,7 +1438,7 @@ const NewsPage = () => {
             onChange={(e) =>
               setDateRange((prev) => ({ ...prev, end: e.target.value }))
             }
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
         </div>
       </div>

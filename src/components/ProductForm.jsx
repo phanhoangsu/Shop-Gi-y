@@ -53,6 +53,7 @@ const ProductForm = ({
   });
   const [draggedImage, setDraggedImage] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [error, setError] = useState(""); // Thêm state để lưu thông báo lỗi
 
   useEffect(() => {
     setPreviewImages(formData.images || []);
@@ -65,6 +66,21 @@ const ProductForm = ({
       }
     };
   }, [cameraStream]);
+
+  const validateForm = () => {
+    if (!formData.name) return "Vui lòng nhập tên sản phẩm!";
+    if (!formData.price || isNaN(formData.price) || Number(formData.price) <= 0)
+      return "Vui lòng nhập giá sản phẩm hợp lệ (lớn hơn 0)!";
+    if (!formData.stock || isNaN(formData.stock) || Number(formData.stock) < 0)
+      return "Vui lòng nhập số lượng tồn kho hợp lệ (lớn hơn hoặc bằng 0)!";
+    if (!formData.img) return "Vui lòng nhập URL hình ảnh!";
+    if (formData.colors.length === 0)
+      return "Vui lòng nhập ít nhất một màu sắc!";
+    if (formData.sizes.length === 0)
+      return "Vui lòng chọn ít nhất một kích thước!";
+    if (!formData.description) return "Vui lòng nhập mô tả sản phẩm!";
+    return null;
+  };
 
   const handleImageChange = (e) => {
     const value = e.target.value;
@@ -214,8 +230,24 @@ const ProductForm = ({
 
   const handleDragEnd = () => setDraggedImage(null);
 
+  const handleFormSubmit = (action) => {
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError("");
+    handleSubmit(action);
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg flex items-center">
+          <FaTimesCircle className="mr-2" />
+          {error}
+        </div>
+      )}
       <div className="flex items-center mb-6">
         <FaTag className="text-blue-500 text-xl mr-2" />
         <h3 className="text-xl font-semibold text-gray-800">
@@ -522,22 +554,46 @@ const ProductForm = ({
               <FaPalette className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                name="colors"
-                placeholder="Nhập màu sắc (phân cách bằng dấu phẩy)"
-                value={formData.colors.join(", ")}
-                onChange={handleInputChange}
+                placeholder="Nhập màu sắc và nhấn Enter"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && e.target.value.trim()) {
+                    const newColors = [
+                      ...formData.colors,
+                      e.target.value.trim(),
+                    ];
+                    handleInputChange({
+                      target: { name: "colors", value: newColors },
+                    });
+                    e.target.value = "";
+                    e.preventDefault();
+                  }
+                }}
                 className="w-full p-2.5 pl-9 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             {formData.colors.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {formData.colors.map((color, index) => (
-                  <span
+                  <div
                     key={index}
-                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full"
+                    className="flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full"
                   >
                     {color}
-                  </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newColors = formData.colors.filter(
+                          (_, i) => i !== index
+                        );
+                        handleInputChange({
+                          target: { name: "colors", value: newColors },
+                        });
+                      }}
+                      className="ml-1 text-blue-600 hover:text-blue-800"
+                    >
+                      <FaTimesCircle />
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -599,7 +655,7 @@ const ProductForm = ({
 
       <div className="mt-6 flex flex-wrap gap-4">
         <button
-          onClick={() => handleSubmit("add")}
+          onClick={() => handleFormSubmit("add")}
           disabled={loading || formData._id}
           className={`flex items-center px-4 py-2 rounded-lg text-white ${
             loading || formData._id
@@ -611,7 +667,7 @@ const ProductForm = ({
           {loading ? "Đang thêm..." : "Thêm sản phẩm"}
         </button>
         <button
-          onClick={() => handleSubmit("update")}
+          onClick={() => handleFormSubmit("update")}
           disabled={loading || !formData._id}
           className={`flex items-center px-4 py-2 rounded-lg text-white ${
             loading || !formData._id
@@ -623,7 +679,7 @@ const ProductForm = ({
           {loading ? "Đang cập nhật..." : "Cập nhật"}
         </button>
         <button
-          onClick={() => handleSubmit("delete")}
+          onClick={() => handleFormSubmit("delete")}
           disabled={loading || !formData._id}
           className={`flex items-center px-4 py-2 rounded-lg text-white ${
             loading || !formData._id
