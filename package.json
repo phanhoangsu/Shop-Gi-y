@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.9",
-    "axios": "^1.8.2",
+    "axios": "^1.8.4",
     "chart.js": "^4.4.8",
     "classnames": "^2.5.1",
     "lodash": "^4.17.21",
@@ -30,7 +30,7 @@
     "react-share": "^5.2.2",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.1",
-    "swiper": "^11.2.5",
+    "swiper": "^11.2.6",
     "tailwindcss": "^4.0.9",
     "xlsx": "^0.18.5",
     "zod": "^3.24.2"
