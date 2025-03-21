@@ -10,6 +10,7 @@ import {
   FaTachometerAlt,
   FaTimes,
   FaUsers,
+  FaNewspaper,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import {
@@ -28,6 +29,7 @@ import ProductForm from "../components/ProductForm";
 import ProductList from "../components/ProductList";
 import Reports from "../components/Reports";
 import Settings from "../components/Settings";
+import NewsForm from "../components/NewsForm";
 import useApi from "../hooks/useApi";
 
 const Admin = () => {
@@ -75,6 +77,15 @@ const Admin = () => {
     colors: [],
     description: "",
     sizes: [],
+  });
+
+  const [newsFormData, setNewsFormData] = useState({
+    _id: "",
+    title: "",
+    thumbnail: "",
+    description: "",
+    body: "",
+    tags: [],
   });
 
   const formDataRef = useRef(formData);
@@ -347,6 +358,66 @@ const Admin = () => {
     return acc;
   }, []);
 
+  const fetchNews = async () => {
+    try {
+      const response = await request("GET", "/su/news");
+      if (response && response.data) {
+        setNews(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching news:", err);
+      showNotification("error", "Lỗi khi tải danh sách tin tức!");
+    }
+  };
+
+  const handleNewsInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewsFormData((prev) => ({
+      ...prev,
+      [name]:
+        name === "tags" ? value.split(",").map((tag) => tag.trim()) : value,
+    }));
+  };
+
+  const handleNewsSubmit = async (action) => {
+    try {
+      switch (action) {
+        case "add":
+          await request("POST", "/su/news", newsFormData);
+          showNotification("success", "Thêm tin tức thành công!");
+          break;
+        case "update":
+          await request("PUT", `/su/news/${newsFormData._id}`, newsFormData);
+          showNotification("success", "Cập nhật tin tức thành công!");
+          break;
+        case "delete":
+          if (window.confirm("Bạn có chắc chắn muốn xóa tin tức này?")) {
+            await request("DELETE", `/su/news/${newsFormData._id}`);
+            showNotification("success", "Xóa tin tức thành công!");
+          }
+          break;
+      }
+      fetchNews();
+      handleNewsReset();
+    } catch (err) {
+      showNotification(
+        "error",
+        `Lỗi: ${err.message || "Không thể thực hiện hành động"}`
+      );
+    }
+  };
+
+  const handleNewsReset = () => {
+    setNewsFormData({
+      _id: "",
+      title: "",
+      thumbnail: "",
+      description: "",
+      body: "",
+      tags: [],
+    });
+  };
+
   const renderDashboard = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -526,6 +597,15 @@ const Admin = () => {
         );
       case "settings":
         return <Settings onUpdatePassword={handleUpdatePassword} />;
+      case "news":
+        return (
+          <NewsForm
+            formData={newsFormData}
+            handleInputChange={handleNewsInputChange}
+            handleSubmit={handleNewsSubmit}
+            handleReset={handleNewsReset}
+          />
+        );
       default:
         return null;
     }
@@ -632,6 +712,19 @@ const Admin = () => {
                 >
                   <FaCog className="mr-3" />
                   Cài đặt
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("news")}
+                  className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                    currentView === "news"
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <FaNewspaper className="mr-3" />
+                  Tin tức
                 </button>
               </li>
             </ul>
