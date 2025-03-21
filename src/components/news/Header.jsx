@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiMonitor,
   FiBookmark,
@@ -10,13 +11,14 @@ import {
 
 const Header = ({ darkMode, setDarkMode, searchTerm, setSearchTerm }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogoClick = (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     setTimeout(() => {
-      window.location.href = "/news";
+      navigate("/news");
       setIsLoading(false);
     }, 1000);
   };
@@ -27,9 +29,8 @@ const Header = ({ darkMode, setDarkMode, searchTerm, setSearchTerm }) => {
         <div className="h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <a
-              href="/news"
               onClick={handleLogoClick}
-              className="flex items-center space-x-2 relative"
+              className="flex items-center space-x-2 relative cursor-pointer"
             >
               {isLoading ? (
                 <div className="w-6 h-6 border-2 border-t-2 border-t-red-500 border-gray-300 rounded-full animate-spin"></div>

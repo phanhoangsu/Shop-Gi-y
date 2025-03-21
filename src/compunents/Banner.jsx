@@ -47,7 +47,7 @@ const Banner = () => {
             onClick={handleLogoClick}
           >
             <span className="relative">
-              jump<span className="text-blue-400">.</span>
+              PHS<span className="text-blue-400">.</span>
               {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-6 h-6 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
