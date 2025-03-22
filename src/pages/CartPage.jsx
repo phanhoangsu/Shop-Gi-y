@@ -401,163 +401,280 @@ const CartPage = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <ToastContainer />
-      {isLoading && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-        </div>
-      )}
-      <OrderDetails
-        selectedOrder={selectedOrder}
-        setSelectedOrder={setSelectedOrder}
-        handleCancelOrder={handleCancelOrder}
-        language={language}
-        translations={translations}
-        formatCurrency={formatCurrency}
-      />
-      <div className="mb-4 flex justify-between items-center">
-        {isLoggedIn && user ? <span>Xin chào, {user.username}!</span> : null}
-        {isLoggedIn && (
-          <button
-            onClick={() => {
-              logout();
-              toast.success("Đăng xuất thành công!");
-              navigate("/");
-            }}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-          >
-            {translations[language].logout}
-          </button>
-        )}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-semibold mb-4">
-            {translations[language].cart}
-          </h2>
-          <button
-            onClick={() =>
-              handleAddToCart({
-                id: 1,
-                name: "Test Product",
-                price: 10,
-                quantity: 1,
-                color: "red",
-                size: "M",
-                stock: 10,
-              })
-            }
-            className="bg-green-500 text-white py-2 px-4 rounded mb-4"
-          >
-            Add Test Product
-          </button>
-          {cart.length === 0 ? (
-            <p className="text-gray-600">
-              {translations[language].noCartItems}
-            </p>
-          ) : (
-            cart.map((item) => (
-              <CartItem
-                key={`${item.id}-${item.color}-${item.size}`}
-                item={item}
-                handleQuantityChange={handleQuantityChange}
-                handleRemoveItem={handleRemoveItem}
-                formatCurrency={formatCurrency}
-              />
-            ))
-          )}
-          <CartSummary
-            calculateSubtotal={calculateSubtotal}
-            calculateShippingFee={calculateShippingFee}
-            calculateTotal={calculateTotal}
-            discount={discount}
-            showShipping={showShipping}
-            loyaltyPoints={loyaltyPoints}
-            formatCurrency={formatCurrency}
-            language={language}
-            translations={translations}
-          />
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-semibold mb-4">
-            {translations[language].payment}
-          </h2>
-          <PaymentOptions
-            paymentMethod={paymentMethod}
-            setPaymentMethod={setPaymentMethod}
-            discountCode={discountCode}
-            handleDiscountCodeChange={handleDiscountCodeChange}
-            loyaltyPoints={loyaltyPoints}
-            handleRedeemPoints={handleRedeemPoints}
-            language={language}
-            translations={translations}
-          />
-          <BillingForm
-            billingInfo={billingInfo}
-            handleBillingInfoChange={handleBillingInfoChange}
-            language={language}
-            translations={translations}
-          />
-          <button
-            className="text-blue-500 hover:underline mb-4"
-            onClick={() => setShowShipping(!showShipping)}
-          >
-            {showShipping
-              ? translations[language].hideShipping
-              : translations[language].toggleShipping}
-          </button>
-          {showShipping && (
-            <ShippingForm
-              shippingInfo={shippingInfo}
-              handleShippingInfoChange={handleShippingInfoChange}
-              shippingMethod={shippingMethod}
-              setShippingMethod={setShippingMethod}
-              language={language}
-              translations={translations}
-            />
-          )}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              {translations[language].notes}
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="border rounded w-full py-2 px-3"
-              placeholder="Nhập ghi chú cho đơn hàng..."
-            />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <ToastContainer />
+        {isLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-2xl shadow-xl">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+              <p className="mt-4 text-gray-600 font-medium">Đang xử lý...</p>
+            </div>
           </div>
-          <OrderTracking
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            paginatedOrders={paginatedOrders}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            totalPages={totalPages}
-            setSelectedOrder={setSelectedOrder}
-            handleDeleteOrder={handleDeleteOrder}
-            formatCurrency={formatCurrency}
-            language={language}
-            translations={translations}
-          />
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
-            onClick={handlePayment}
-            disabled={isLoading || cart.length === 0}
-          >
-            {isLoading
-              ? translations[language].processing
-              : translations[language].payment}
-          </button>
-          <button
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded w-full mt-2"
-            onClick={() => navigate("/")}
-          >
-            {translations[language].continueShopping}
-          </button>
+        )}
+        <OrderDetails
+          selectedOrder={selectedOrder}
+          setSelectedOrder={setSelectedOrder}
+          handleCancelOrder={handleCancelOrder}
+          language={language}
+          translations={translations}
+          formatCurrency={formatCurrency}
+        />
+        <div className="mb-8 flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300">
+          {isLoggedIn && user ? (
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-blue-600 font-semibold text-lg">
+                  {user.username.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="text-gray-700 font-medium">
+                Xin chào, {user.username}!
+              </span>
+            </div>
+          ) : null}
+          {isLoggedIn && (
+            <button
+              onClick={() => {
+                logout();
+                toast.success("Đăng xuất thành công!");
+                navigate("/");
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white font-medium py-2.5 px-6 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-0.5"
+            >
+              {translations[language].logout}
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-8">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-800">
+                    {translations[language].cart}
+                  </h2>
+                  <p className="text-gray-500 mt-1">
+                    {cart.length} sản phẩm trong giỏ hàng
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    handleAddToCart({
+                      id: 1,
+                      name: "Test Product",
+                      price: 10,
+                      quantity: 1,
+                      color: "red",
+                      size: "M",
+                      stock: 10,
+                    })
+                  }
+                  className="bg-green-500 hover:bg-green-600 text-white font-medium py-2.5 px-6 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-0.5 flex items-center space-x-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>Add Test Product</span>
+                </button>
+              </div>
+              {cart.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-12 w-12 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500 text-xl font-medium">
+                    {translations[language].noCartItems}
+                  </p>
+                  <button
+                    onClick={() => navigate("/")}
+                    className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-0.5"
+                  >
+                    Tiếp tục mua sắm
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {cart.map((item) => (
+                    <CartItem
+                      key={`${item.id}-${item.color}-${item.size}`}
+                      item={item}
+                      handleQuantityChange={handleQuantityChange}
+                      handleRemoveItem={handleRemoveItem}
+                      formatCurrency={formatCurrency}
+                    />
+                  ))}
+                </div>
+              )}
+              <div className="mt-8 pt-8 border-t border-gray-100">
+                <CartSummary
+                  calculateSubtotal={calculateSubtotal}
+                  calculateShippingFee={calculateShippingFee}
+                  calculateTotal={calculateTotal}
+                  discount={discount}
+                  showShipping={showShipping}
+                  loyaltyPoints={loyaltyPoints}
+                  formatCurrency={formatCurrency}
+                  language={language}
+                  translations={translations}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-8">
+                {translations[language].payment}
+              </h2>
+              <div className="space-y-8">
+                <PaymentOptions
+                  paymentMethod={paymentMethod}
+                  setPaymentMethod={setPaymentMethod}
+                  discountCode={discountCode}
+                  handleDiscountCodeChange={handleDiscountCodeChange}
+                  loyaltyPoints={loyaltyPoints}
+                  handleRedeemPoints={handleRedeemPoints}
+                  language={language}
+                  translations={translations}
+                />
+                <BillingForm
+                  billingInfo={billingInfo}
+                  handleBillingInfoChange={handleBillingInfoChange}
+                  language={language}
+                  translations={translations}
+                />
+                <button
+                  className="text-blue-600 hover:text-blue-800 font-medium transition duration-200 ease-in-out flex items-center space-x-2"
+                  onClick={() => setShowShipping(!showShipping)}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>
+                    {showShipping
+                      ? translations[language].hideShipping
+                      : translations[language].toggleShipping}
+                  </span>
+                </button>
+                {showShipping && (
+                  <ShippingForm
+                    shippingInfo={shippingInfo}
+                    handleShippingInfoChange={handleShippingInfoChange}
+                    shippingMethod={shippingMethod}
+                    setShippingMethod={setShippingMethod}
+                    language={language}
+                    translations={translations}
+                  />
+                )}
+                <div>
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    {translations[language].notes}
+                  </label>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out resize-none"
+                    placeholder="Nhập ghi chú cho đơn hàng..."
+                    rows="3"
+                  />
+                </div>
+                <OrderTracking
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  filterStatus={filterStatus}
+                  setFilterStatus={setFilterStatus}
+                  paginatedOrders={paginatedOrders}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  totalPages={totalPages}
+                  setSelectedOrder={setSelectedOrder}
+                  handleDeleteOrder={handleDeleteOrder}
+                  formatCurrency={formatCurrency}
+                  language={language}
+                  translations={translations}
+                />
+                <div className="space-y-4">
+                  <button
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3.5 px-6 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center space-x-2"
+                    onClick={handlePayment}
+                    disabled={isLoading || cart.length === 0}
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white"></div>
+                        <span>{translations[language].processing}</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 1h6v4H7V5zm8 8H7v-2h8v2zm0-4H7V7h8v2z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>{translations[language].payment}</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3.5 px-6 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center space-x-2"
+                    onClick={() => navigate("/")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>{translations[language].continueShopping}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
