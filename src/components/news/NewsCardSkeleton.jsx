@@ -1,3 +1,25 @@
+/**
+ * Logic chính và chức năng:
+ * 
+ * 1. Chức năng:
+ *    - Loading placeholder cho news card
+ *    - Giảm thiểu layout shift
+ *    - Cải thiện UX khi loading
+ * 
+ * 2. Logic hiển thị:
+ *    - Mô phỏng cấu trúc news card:
+ *      + Image placeholder
+ *      + Title placeholder
+ *      + Description placeholders
+ *    - Kích thước tương đối (w-3/4, w-1/2)
+ * 
+ * 3. UI/UX:
+ *    - Pulse animation
+ *    - Gradient background
+ *    - Dark mode support
+ *    - Rounded corners
+ *    - Shadow effects
+ */
 import React from "react";
 
 const NewsCardSkeleton = () => (

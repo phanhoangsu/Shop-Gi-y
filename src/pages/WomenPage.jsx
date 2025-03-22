@@ -1,3 +1,32 @@
+/**
+ * WomenPage Component
+ * 
+ * Chức năng chính:
+ * 1. Product Management:
+ *    - Display women's shoes
+ *    - Filter functionality
+ *    - Sort options
+ *    - Search capability
+ * 
+ * 2. Shopping Features:
+ *    - Add to cart
+ *    - Wishlist management
+ *    - Quick view product
+ *    - Stock tracking
+ * 
+ * 3. User Experience:
+ *    - Responsive design
+ *    - Loading states
+ *    - Error handling
+ *    - Pagination
+ * 
+ * 4. Product Details:
+ *    - Color selection
+ *    - Size selection
+ *    - Quantity control
+ *    - Price filtering
+ */
+
 import React, { useEffect, useState } from "react";
 import {
   FaSearch,
@@ -11,31 +40,52 @@ import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
+/**
+ * WomenPage Component
+ * @component
+ * @description Manages women's shoe catalog and shopping features
+ */
 const WomenPage = () => {
+  // Cart Integration
   const { addToCart } = useCart();
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+
+  // Product State
+  const [products, setProducts] = useState([]); // All products
+  const [filteredProducts, setFilteredProducts] = useState([]); // Filtered products
+  const [selectedProduct, setSelectedProduct] = useState(null); // Quick view product
+
+  // UI State
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hoveredProduct, setHoveredProduct] = useState(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [cartNotification, setCartNotification] = useState(false);
+
+  // Filter State
   const [searchTerm, setSearchTerm] = useState("");
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [selectedColors, setSelectedColors] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [sortBy, setSortBy] = useState("default");
-  const productsPerPage = 8;
 
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  // Product Selection State
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState(null);
-  const [cartNotification, setCartNotification] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hoveredProduct, setHoveredProduct] = useState(null);
+
+  // Wishlist Management
   const [wishlist, setWishlist] = useState(
     JSON.parse(localStorage.getItem("wishlist")) || []
   );
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  // Constants
+  const productsPerPage = 8;
+
+  /**
+   * Fetches women's products from API
+   * @async
+   */
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
@@ -55,36 +105,58 @@ const WomenPage = () => {
     fetchProducts();
   }, []);
 
+  /**
+   * Filters and sorts products based on user selections
+   */
   useEffect(() => {
     let filtered = [...products];
+
+    // Apply search filter
     filtered = filtered.filter((product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Apply price range filter
     filtered = filtered.filter(
       (product) =>
         product.price >= priceRange[0] && product.price <= priceRange[1]
     );
+
+    // Apply color filter
     if (selectedColors.length > 0) {
       filtered = filtered.filter((product) =>
         product.colors.some((color) => selectedColors.includes(color))
       );
     }
+
+    // Apply size filter
     if (selectedSizes.length > 0) {
       filtered = filtered.filter((product) =>
         product.sizes.some((size) => selectedSizes.includes(size))
       );
     }
+
+    // Apply sorting
     if (sortBy === "price-asc") {
       filtered.sort((a, b) => a.price - b.price);
     } else if (sortBy === "price-desc") {
       filtered.sort((a, b) => b.price - a.price);
     }
+
     setFilteredProducts(filtered);
     setCurrentPage(1);
   }, [products, searchTerm, priceRange, selectedColors, selectedSizes, sortBy]);
 
+  /**
+   * Handles search input changes
+   * @param {Event} e - Input change event
+   */
   const handleSearch = (e) => setSearchTerm(e.target.value);
 
+  /**
+   * Toggles product in wishlist
+   * @param {Object} product - Product to toggle
+   */
   const toggleWishlist = (product) => {
     const newWishlist = wishlist.some((item) => item._id === product._id)
       ? wishlist.filter((item) => item._id !== product._id)
@@ -93,6 +165,10 @@ const WomenPage = () => {
     localStorage.setItem("wishlist", JSON.stringify(newWishlist));
   };
 
+  /**
+   * Opens quick view popup for a product
+   * @param {Object} product - Product to view
+   */
   const openPopup = (product) => {
     setSelectedProduct(product);
     setQuantity(1);
@@ -100,8 +176,15 @@ const WomenPage = () => {
     setSelectedSize(product.sizes[0] || null);
   };
 
+  /**
+   * Closes quick view popup
+   */
   const closePopup = () => setSelectedProduct(null);
 
+  /**
+   * Adds product to cart
+   * @param {Object} product - Product to add
+   */
   const handleAddToCart = (product = selectedProduct) => {
     if (!selectedColor || !selectedSize) {
       alert("Vui lòng chọn màu sắc và kích thước!");

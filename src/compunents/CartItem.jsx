@@ -1,14 +1,53 @@
+/**
+ * Component CartItem
+ * 
+ * Chức năng chính:
+ * 1. Hiển thị sản phẩm trong giỏ hàng:
+ *    - Hình ảnh sản phẩm
+ *    - Tên sản phẩm
+ *    - Màu sắc và kích thước
+ *    - Số lượng còn lại trong kho
+ * 
+ * 2. Quản lý số lượng:
+ *    - Tăng/giảm số lượng
+ *    - Kiểm tra giới hạn tồn kho
+ *    - Nhập số lượng trực tiếp
+ * 
+ * 3. Hiển thị giá:
+ *    - Giá mỗi sản phẩm
+ *    - Tổng giá theo số lượng
+ *    - Định dạng tiền tệ
+ * 
+ * 4. Chức năng xóa:
+ *    - Xóa sản phẩm khỏi giỏ hàng
+ *    - Xác nhận xóa
+ */
+
 import React from "react";
 
+/**
+ * Component CartItem
+ * @component
+ * @description Hiển thị và quản lý từng sản phẩm trong giỏ hàng
+ * 
+ * @param {Object} props - Các props truyền vào component
+ * @param {Object} props.item - Thông tin sản phẩm (id, tên, màu, size, số lượng, giá, hình ảnh)
+ * @param {Function} props.handleQuantityChange - Hàm xử lý thay đổi số lượng
+ * @param {Function} props.handleRemoveItem - Hàm xử lý xóa sản phẩm
+ * @param {Function} props.formatCurrency - Hàm định dạng tiền tệ
+ */
 const CartItem = ({
   item,
   handleQuantityChange,
   handleRemoveItem,
   formatCurrency,
 }) => {
+  // Render phần hiển thị hình ảnh và thông tin sản phẩm
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
+      {/* Phần hiển thị hình ảnh và thông tin sản phẩm */}
       <div className="flex items-center space-x-6">
+        {/* Hình ảnh sản phẩm */}
         <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
           <img
             src={item.image || "https://via.placeholder.com/150"}
@@ -16,21 +55,28 @@ const CartItem = ({
             className="w-full h-full object-cover"
           />
         </div>
+
+        {/* Thông tin chi tiết sản phẩm */}
         <div className="flex-grow">
+          {/* Tên sản phẩm và nút xóa */}
           <div className="flex justify-between items-start">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">
                 {item.name}
               </h3>
+              {/* Màu sắc và kích thước */}
               <div className="mt-1 flex items-center space-x-2">
                 <span className="text-sm text-gray-500">Màu: {item.color}</span>
                 <span className="text-gray-300">|</span>
                 <span className="text-sm text-gray-500">Size: {item.size}</span>
               </div>
             </div>
+
+            {/* Nút xóa sản phẩm */}
             <button
               onClick={() => handleRemoveItem(item.id, item.color, item.size)}
               className="text-gray-400 hover:text-red-500 transition-colors duration-200"
+              title="Xóa sản phẩm"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -46,12 +92,17 @@ const CartItem = ({
               </svg>
             </button>
           </div>
+
+          {/* Phần điều chỉnh số lượng và hiển thị giá */}
           <div className="mt-4 flex items-center justify-between">
+            {/* Điều chỉnh số lượng và hiển thị tồn kho */}
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-gray-50 rounded-lg p-1">
+                {/* Nút giảm số lượng */}
                 <button
                   onClick={() => handleQuantityChange(item.id, "decrease")}
                   className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors duration-200"
+                  title="Giảm số lượng"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -66,6 +117,8 @@ const CartItem = ({
                     />
                   </svg>
                 </button>
+
+                {/* Ô nhập số lượng */}
                 <input
                   type="number"
                   min="1"
@@ -73,10 +126,14 @@ const CartItem = ({
                   value={item.quantity}
                   onChange={(e) => handleQuantityChange(item.id, "manual", e)}
                   className="w-12 text-center bg-transparent text-gray-700 font-medium focus:outline-none"
+                  title="Nhập số lượng"
                 />
+
+                {/* Nút tăng số lượng */}
                 <button
                   onClick={() => handleQuantityChange(item.id, "increase")}
                   className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors duration-200"
+                  title="Tăng số lượng"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -92,10 +149,14 @@ const CartItem = ({
                   </svg>
                 </button>
               </div>
+
+              {/* Hiển thị số lượng tồn kho */}
               <span className="text-sm text-gray-500">
                 Còn lại: {item.stock} sản phẩm
               </span>
             </div>
+
+            {/* Hiển thị giá */}
             <div className="text-right">
               <p className="text-lg font-semibold text-gray-800">
                 {formatCurrency(item.price * item.quantity)}

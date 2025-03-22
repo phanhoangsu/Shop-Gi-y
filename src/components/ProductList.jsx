@@ -1,3 +1,38 @@
+/**
+ * ProductList Component
+ * 
+ * Chức năng chính:
+ * - Hiển thị danh sách sản phẩm
+ * - Quản lý lọc và tìm kiếm
+ * - Thao tác hàng loạt
+ * 
+ * Logic chính:
+ * 1. State Management:
+ *    - priceRange: Khoảng giá (min/max)
+ *    - stockRange: Khoảng tồn kho (min/max)
+ *    - selectedProducts: Sản phẩm được chọn
+ *    - searchTerm: Từ khóa tìm kiếm
+ *    - filters: Category và stock filters
+ * 
+ * 2. Data Processing:
+ *    - Filter products by:
+ *      + Search keyword
+ *      + Price range
+ *      + Stock range
+ *      + Category
+ *    - Calculate statistics:
+ *      + Total value
+ *      + Total stock
+ *      + Average price
+ * 
+ * 3. UI Features:
+ *    - Bulk selection
+ *    - Category filtering
+ *    - Stock status filtering
+ *    - Size badges
+ *    - Bulk actions
+ */
+
 import React, { useMemo, useState } from "react";
 import {
   FaSync,
@@ -12,6 +47,21 @@ import {
   FaTrash,
 } from "react-icons/fa";
 
+/**
+ * ProductList Component
+ * @param {Object} props
+ * @param {Array} props.products - Danh sách sản phẩm
+ * @param {Function} props.handleEdit - Xử lý sửa sản phẩm
+ * @param {Function} props.handleDelete - Xử lý xóa sản phẩm
+ * @param {Array} props.selectedProducts - Sản phẩm đã chọn
+ * @param {Function} props.setSelectedProducts - Set sản phẩm đã chọn
+ * @param {string} props.searchTerm - Từ khóa tìm kiếm
+ * @param {Function} props.setSearchTerm - Set từ khóa tìm kiếm
+ * @param {Object} props.filters - Bộ lọc
+ * @param {Function} props.setFilters - Set bộ lọc
+ * @param {Function} props.handleBulkAction - Xử lý thao tác hàng loạt
+ * @param {Function} props.setCurrentView - Set view hiện tại
+ */
 const ProductList = ({
   products,
   handleEdit,
@@ -25,9 +75,29 @@ const ProductList = ({
   handleBulkAction,
   setCurrentView,
 }) => {
+  /**
+   * Price Range State
+   * @type {Object}
+   * @property {string} min - Giá tối thiểu
+   * @property {string} max - Giá tối đa
+   */
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+
+  /**
+   * Stock Range State
+   * @type {Object}
+   * @property {string} min - Tồn kho tối thiểu
+   * @property {string} max - Tồn kho tối đa
+   */
   const [stockRange, setStockRange] = useState({ min: "", max: "" });
 
+  /**
+   * Filtered Products
+   * Lọc sản phẩm dựa trên:
+   * - Từ khóa tìm kiếm
+   * - Khoảng giá
+   * - Khoảng tồn kho
+   */
   const searchedProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesSearch = product.name
@@ -44,6 +114,13 @@ const ProductList = ({
     });
   }, [products, searchTerm, priceRange, stockRange]);
 
+  /**
+   * Product Statistics
+   * Tính toán:
+   * - Tổng giá trị = sum(giá * tồn kho)
+   * - Tổng tồn kho = sum(tồn kho)
+   * - Giá trung bình = avg(giá)
+   */
   const stats = useMemo(() => {
     const totalValue = searchedProducts.reduce(
       (sum, product) =>
@@ -66,6 +143,11 @@ const ProductList = ({
     return { totalValue, totalStock, avgPrice };
   }, [searchedProducts]);
 
+  /**
+   * Render Size Badges
+   * @param {Array} sizes - Mảng các size
+   * @returns {JSX.Element} Size badges
+   */
   const renderSizeBadges = (sizes) => {
     if (!sizes || sizes.length === 0) return "Không có";
     return (

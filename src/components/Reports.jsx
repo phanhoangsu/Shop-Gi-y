@@ -1,3 +1,22 @@
+/**
+ * Logic chính:
+ * 1. Quản lý state:
+ *    - dateRange: Khoảng thời gian báo cáo (7/30/365 ngày)
+ * 
+ * 2. Xử lý dữ liệu:
+ *    - Lọc dữ liệu theo dateRange
+ *    - Tính toán doanh thu theo ngày
+ *    - Tính toán doanh thu theo danh mục
+ *    - Tính các chỉ số KPI:
+ *      + Tổng doanh thu
+ *      + Tổng đơn hàng
+ *      + Khách hàng mới
+ *      + Tỷ lệ chuyển đổi
+ * 
+ * 3. Xuất báo cáo:
+ *    - Format dữ liệu sang CSV
+ *    - Tạo file và download
+ */
 import React, { useState } from "react";
 import {
   LineChart,
@@ -17,15 +36,22 @@ import {
 import { FaDownload, FaCalendar } from "react-icons/fa";
 
 const Reports = ({ orders, customers }) => {
+  // State quản lý khoảng thời gian
   const [dateRange, setDateRange] = useState("week");
 
+  /**
+   * Format số tiền sang định dạng tiền tệ USD
+   */
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(amount);
 
-  // Lọc dữ liệu theo khoảng thời gian
+  /**
+   * Lọc dữ liệu theo khoảng thời gian đã chọn
+   * Hỗ trợ: tuần (7), tháng (30), năm (365)
+   */
   const filterDataByRange = (data) => {
     const now = new Date();
     let days;
@@ -46,7 +72,7 @@ const Reports = ({ orders, customers }) => {
     return data.filter((item) => new Date(item.date) >= startDate);
   };
 
-  // Dữ liệu doanh thu và đơn hàng
+  // Xử lý dữ liệu doanh thu và đơn hàng theo ngày
   const filteredOrders = filterDataByRange(orders);
   const salesData = filteredOrders.reduce((acc, order) => {
     const date = new Date(order.date).toLocaleDateString("en-US", {
@@ -62,7 +88,7 @@ const Reports = ({ orders, customers }) => {
     return acc;
   }, []);
 
-  // Dữ liệu danh mục
+  // Xử lý dữ liệu doanh thu theo danh mục
   const categoryData = filteredOrders.reduce((acc, order) => {
     order.cartItems.forEach((item) => {
       const category = item.category || "Không xác định";
@@ -76,9 +102,10 @@ const Reports = ({ orders, customers }) => {
     return acc;
   }, []);
 
+  // Màu sắc cho biểu đồ tròn
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-  // Thống kê tổng quan
+  // Tính toán các chỉ số thống kê tổng quan
   const totalRevenue = filteredOrders.reduce(
     (sum, order) => sum + order.total,
     0
@@ -91,6 +118,10 @@ const Reports = ({ orders, customers }) => {
   ).length;
   const conversionRate = totalOrders / (customers.length || 1);
 
+  /**
+   * Xuất dữ liệu báo cáo dạng CSV
+   * Bao gồm: thống kê tổng quan, dữ liệu theo ngày và theo danh mục
+   */
   const downloadReport = () => {
     const csvContent = [
       ["Thống kê", "Giá trị"],

@@ -1,3 +1,22 @@
+/**
+ * Logic chính:
+ * 1. Quản lý state:
+ *    - headings: Danh sách tiêu đề (h2, h3)
+ *    - activeId: ID tiêu đề đang active
+ * 
+ * 2. Xử lý DOM:
+ *    - Query các heading elements
+ *    - Extract thông tin: id, text, level
+ *    - IntersectionObserver theo dõi vị trí
+ *    - Cleanup observer
+ * 
+ * 3. UI/UX:
+ *    - Sticky positioning
+ *    - Indent theo level
+ *    - Scroll spy
+ *    - Active state
+ *    - Smooth scroll
+ */
 import React, { useState, useEffect } from "react";
 
 const TableOfContents = ({ content }) => {

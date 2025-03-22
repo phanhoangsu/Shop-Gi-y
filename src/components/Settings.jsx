@@ -1,6 +1,21 @@
+/**
+ * Component cài đặt hệ thống
+ * Props:
+ * - onUpdatePassword: Callback cập nhật mật khẩu
+ * 
+ * Chức năng:
+ * - Đổi mật khẩu người dùng
+ * - Kiểm tra mật khẩu hiện tại
+ * - Validate mật khẩu mới:
+ *   + Độ dài tối thiểu 4 ký tự
+ *   + Khớp với xác nhận mật khẩu
+ * - Hiển thị thông báo lỗi
+ * - Reset form sau khi đổi thành công
+ */
 import React, { useState } from "react";
 
 const Settings = ({ onUpdatePassword }) => {
+  // State quản lý form đổi mật khẩu
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -8,11 +23,21 @@ const Settings = ({ onUpdatePassword }) => {
   });
   const [error, setError] = useState("");
 
+  /**
+   * Xử lý thay đổi giá trị input
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setPasswordData((prev) => ({ ...prev, [name]: value }));
   };
 
+  /**
+   * Xử lý submit form đổi mật khẩu
+   * - Kiểm tra mật khẩu hiện tại
+   * - Validate mật khẩu mới
+   * - Gọi callback cập nhật
+   * - Reset form và thông báo
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     const { currentPassword, newPassword, confirmPassword } = passwordData;
@@ -35,8 +60,10 @@ const Settings = ({ onUpdatePassword }) => {
       return;
     }
 
-    // Gọi hàm từ Admin.js để cập nhật mật khẩu
+    // Gọi callback cập nhật mật khẩu
     onUpdatePassword(newPassword);
+    
+    // Reset form và thông báo thành công
     setPasswordData({
       currentPassword: "",
       newPassword: "",

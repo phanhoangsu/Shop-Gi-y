@@ -1,3 +1,35 @@
+/**
+ * CartPage Component
+ * 
+ * Chức năng chính:
+ * 1. Quản lý giỏ hàng:
+ *    - Hiển thị sản phẩm
+ *    - Cập nhật số lượng
+ *    - Xóa sản phẩm
+ *    - Tính toán giá
+ * 
+ * 2. Thanh toán:
+ *    - Form thông tin
+ *    - Phương thức thanh toán
+ *    - Xử lý đơn hàng
+ *    - Tích điểm
+ * 
+ * 3. Giao hàng:
+ *    - Địa chỉ giao hàng
+ *    - Phí vận chuyển
+ *    - Theo dõi đơn
+ * 
+ * 4. Khuyến mãi:
+ *    - Mã giảm giá
+ *    - Điểm thưởng
+ *    - Ưu đãi
+ * 
+ * 5. Đa ngôn ngữ:
+ *    - Hỗ trợ tiếng Việt
+ *    - Messages
+ *    - Labels
+ */
+
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -11,7 +43,13 @@ import PaymentOptions from "../compunents/PaymentOptions";
 import ShippingForm from "../compunents/ShippingForm";
 import { useCart } from "../context/CartContext";
 
+/**
+ * CartPage Component
+ * @component
+ * @description Quản lý toàn bộ chức năng giỏ hàng và thanh toán
+ */
 const CartPage = () => {
+  // Cart Context
   const {
     cart,
     updateCartItemQuantity,
@@ -22,16 +60,22 @@ const CartPage = () => {
     logout,
     isLoggedIn,
   } = useCart();
+  
   const navigate = useNavigate();
 
+  // Discount Management
   const [discountCode, setDiscountCode] = useState("");
   const [discount, setDiscount] = useState(0);
+  
+  // Shipping Information
   const [showShipping, setShowShipping] = useState(false);
   const [shippingInfo, setShippingInfo] = useState({
     name: "",
     address: "",
     phone: "",
   });
+
+  // Billing & Payment
   const [billingInfo, setBillingInfo] = useState({
     name: "",
     email: "",
@@ -41,21 +85,28 @@ const CartPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [notes, setNotes] = useState("");
   const [shippingMethod, setShippingMethod] = useState("standard");
+
+  // Order History
   const [orderHistory, setOrderHistory] = useState(() => {
     const savedHistory = localStorage.getItem("orderHistory");
     return savedHistory ? JSON.parse(savedHistory) : [];
   });
+
+  // Loyalty Program
   const [loyaltyPoints, setLoyaltyPoints] = useState(() => {
     const savedPoints = localStorage.getItem("loyaltyPoints");
     return savedPoints ? parseInt(savedPoints) : 0;
   });
+
+  // Order Management
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("Tất cả");
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 10;
-  const [language] = useState("vi");
 
+  // Localization
+  const [language] = useState("vi");
   const translations = {
     vi: {
       cart: "Giỏ hàng",
@@ -106,12 +157,14 @@ const CartPage = () => {
     },
   };
 
+  // Utility Functions
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(amount);
 
+  // Price Calculations
   const calculateSubtotal = useMemo(() => {
     return cart.reduce((total, item) => total + item.quantity * item.price, 0);
   }, [cart]);
@@ -129,6 +182,7 @@ const CartPage = () => {
     );
   }, [calculateSubtotal, discount, showShipping, calculateShippingFee]);
 
+  // Event Handlers
   const handleQuantityChange = useCallback(
     (id, action, event) => {
       const item = cart.find((item) => item.id === id);
@@ -193,6 +247,7 @@ const CartPage = () => {
   const handleBillingInfoChange = (e) =>
     setBillingInfo({ ...billingInfo, [e.target.id]: e.target.value });
 
+  // Payment Processing
   const validateInput = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\d{9,11}$/;
@@ -645,7 +700,7 @@ const CartPage = () => {
                         >
                           <path
                             fillRule="evenodd"
-                            d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 1h6v4H7V5zm8 8H7v-2h8v2zm0-4H7V7h8v2z"
+                            d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 1h6v4H7V5zm8 8v2h-2v-2H9v2H7v-2a1 1 0 00-2 0v2a1 1 0 001 1h2V9h2v6zm-2-2v-2H9v2h2z"
                             clipRule="evenodd"
                           />
                         </svg>
@@ -654,7 +709,7 @@ const CartPage = () => {
                     )}
                   </button>
                   <button
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3.5 px-6 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center space-x-2"
+                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3.5 px-6 rounded-xl transition-all duration-200 ease-in-out hover:shadow-lg hover:-translate-y-0.5"
                     onClick={() => navigate("/")}
                   >
                     <svg

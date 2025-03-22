@@ -1,3 +1,34 @@
+/**
+ * Admin Page Component
+ * 
+ * Chức năng chính:
+ * 1. Quản lý sản phẩm:
+ *    - CRUD operations
+ *    - Quản lý tồn kho
+ *    - Upload ảnh
+ *    - Phân loại sản phẩm
+ * 
+ * 2. Quản lý đơn hàng:
+ *    - Xem danh sách
+ *    - Cập nhật trạng thái
+ *    - Thống kê doanh thu
+ * 
+ * 3. Quản lý khách hàng:
+ *    - Danh sách khách hàng
+ *    - Lịch sử mua hàng
+ *    - Phân tích hành vi
+ * 
+ * 4. Quản lý tin tức:
+ *    - Đăng/sửa/xóa tin
+ *    - Quản lý tags
+ *    - SEO optimization
+ * 
+ * 5. Bảo mật:
+ *    - Xác thực admin
+ *    - Phân quyền
+ *    - Session management
+ */
+
 import React, { useEffect, useRef, useState } from "react";
 import {
   FaBars,
@@ -32,39 +63,56 @@ import Settings from "../components/Settings";
 import NewsForm from "../components/NewsForm";
 import useApi from "../hooks/useApi";
 
+/**
+ * Admin Component
+ * @component
+ * @description Quản lý toàn bộ chức năng admin của hệ thống
+ */
 const Admin = () => {
+  // API hooks
   const { request, loading, error } = useApi();
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [notification, setNotification] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [currentView, setCurrentView] = useState("dashboard");
-  const [searchTerm, setSearchTerm] = useState("");
+
+  // Product management state
+  const [products, setProducts] = useState([]); // Danh sách sản phẩm
+  const [notification, setNotification] = useState(null); // System notifications
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Sidebar state
+  const [currentView, setCurrentView] = useState("dashboard"); // Current view
+  const [searchTerm, setSearchTerm] = useState(""); // Search functionality
+  
+  // Filter state
   const [filters, setFilters] = useState({
-    category: "all",
-    priceRange: "all",
-    stock: "all",
+    category: "all", // Product category
+    priceRange: "all", // Price range
+    stock: "all", // Stock status
   });
-  const [selectedProducts, setSelectedProducts] = useState([]);
+
+  // Authentication state
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Product configuration
   const availableSizes = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43];
 
+  // Authentication constants
   const ADMIN_USERNAME = "admin";
   const ADMIN_PASSWORD = "1234";
 
+  // Login form state
   const [adminLoginData, setAdminLoginData] = useState({
     username: "",
     password: "",
   });
 
+  // Dashboard statistics
   const [adminStats, setAdminStats] = useState({
-    newOrders: 0,
-    customers: [],
-    revenue: 0,
-    orders: [],
+    newOrders: 0, // New orders count
+    customers: [], // Customer list
+    revenue: 0, // Total revenue
+    orders: [], // Order history
   });
 
+  // Product form state
   const [formData, setFormData] = useState({
     _id: "",
     category: "nam",
@@ -79,6 +127,7 @@ const Admin = () => {
     sizes: [],
   });
 
+  // News form state
   const [newsFormData, setNewsFormData] = useState({
     _id: "",
     title: "",
@@ -88,8 +137,10 @@ const Admin = () => {
     tags: [],
   });
 
+  // Refs for form data persistence
   const formDataRef = useRef(formData);
 
+  // Effect hooks
   useEffect(() => {
     formDataRef.current = formData;
   }, [formData, loading]);
@@ -116,6 +167,7 @@ const Admin = () => {
     return () => window.removeEventListener("storage", fetchAdminData);
   }, []);
 
+  // Hàm fetch dữ liệu sản phẩm
   const fetchProducts = async () => {
     try {
       const data = await request("GET", "/su/product");
@@ -135,11 +187,13 @@ const Admin = () => {
     }
   };
 
+  // Hàm hiển thị thông báo
   const showNotification = (type, message) => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 3000);
   };
 
+  // Xử lý đăng nhập admin
   const handleAdminLogin = (e) => {
     e.preventDefault();
     if (
@@ -154,6 +208,7 @@ const Admin = () => {
     }
   };
 
+  // Xử lý đăng xuất admin
   const handleAdminLogout = () => {
     setIsAdminAuthenticated(false);
     setAdminLoginData({ username: "", password: "" });
@@ -161,6 +216,7 @@ const Admin = () => {
     showNotification("success", "Đã đăng xuất!");
   };
 
+  // Xử lý thay đổi input đăng nhập
   const handleLoginInputChange = (e) => {
     const { name, value } = e.target;
     setAdminLoginData((prev) => ({
@@ -169,6 +225,7 @@ const Admin = () => {
     }));
   };
 
+  // Xử lý thay đổi input sản phẩm
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -177,6 +234,7 @@ const Admin = () => {
     }));
   };
 
+  // Xử lý thay đổi size sản phẩm
   const handleSizeChange = (size) => {
     setFormData((prev) => ({
       ...prev,
@@ -186,6 +244,7 @@ const Admin = () => {
     }));
   };
 
+  // Xử lý submit sản phẩm
   const handleSubmit = async (action) => {
     if (action === "update" && !formDataRef.current._id) {
       showNotification("error", "Vui lòng chọn sản phẩm để cập nhật!");
@@ -245,6 +304,7 @@ const Admin = () => {
     }
   };
 
+  // Xử lý chỉnh sửa sản phẩm
   const handleEdit = (product) => {
     const updatedFormData = {
       _id: product._id || "",
@@ -263,6 +323,7 @@ const Admin = () => {
     setCurrentView("form");
   };
 
+  // Xử lý reset sản phẩm
   const handleReset = () => {
     const resetData = {
       _id: "",
@@ -280,6 +341,7 @@ const Admin = () => {
     setFormData(resetData);
   };
 
+  // Xử lý hành động hàng loạt
   const handleBulkAction = async (action) => {
     if (selectedProducts.length === 0) {
       showNotification("error", "Vui lòng chọn sản phẩm!");
@@ -308,6 +370,7 @@ const Admin = () => {
     }
   };
 
+  // Xử lý click logo
   const handleLogoClick = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -316,11 +379,13 @@ const Admin = () => {
     }, 1000);
   };
 
+  // Xử lý cập nhật mật khẩu
   const handleUpdatePassword = (newPassword) => {
     console.log("Mật khẩu mới:", newPassword);
     // Thêm logic cập nhật mật khẩu nếu cần
   };
 
+  // Lọc sản phẩm
   const filteredProducts = products
     .filter((product) => {
       if (filters.category !== "all" && product.category !== filters.category)
@@ -338,12 +403,14 @@ const Admin = () => {
     })
     .sort((a, b) => 0);
 
+  // Định dạng tiền tệ
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(amount);
 
+  // Dữ liệu biểu đồ
   const chartData = adminStats.orders.reduce((acc, order) => {
     const date = new Date(order.date).toLocaleDateString("en-US", {
       month: "short",
@@ -358,6 +425,7 @@ const Admin = () => {
     return acc;
   }, []);
 
+  // Fetch tin tức
   const fetchNews = async () => {
     try {
       const response = await request("GET", "/su/news");
@@ -370,6 +438,7 @@ const Admin = () => {
     }
   };
 
+  // Xử lý thay đổi input tin tức
   const handleNewsInputChange = (e) => {
     const { name, value } = e.target;
     setNewsFormData((prev) => ({
@@ -379,6 +448,7 @@ const Admin = () => {
     }));
   };
 
+  // Xử lý submit tin tức
   const handleNewsSubmit = async (action) => {
     try {
       switch (action) {
@@ -407,6 +477,7 @@ const Admin = () => {
     }
   };
 
+  // Xử lý reset tin tức
   const handleNewsReset = () => {
     setNewsFormData({
       _id: "",
@@ -418,6 +489,7 @@ const Admin = () => {
     });
   };
 
+  // Render dashboard
   const renderDashboard = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -501,6 +573,7 @@ const Admin = () => {
     </div>
   );
 
+  // Render form đăng nhập
   const renderLoginForm = () => (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -545,6 +618,7 @@ const Admin = () => {
     </div>
   );
 
+  // Render nội dung
   const renderContent = () => {
     if (!isAdminAuthenticated) {
       return renderLoginForm();

@@ -1,5 +1,44 @@
+/**
+ * Component CartSummary
+ * 
+ * Chức năng chính:
+ * 1. Hiển thị tổng quan đơn hàng:
+ *    - Tạm tính
+ *    - Giảm giá (nếu có)
+ *    - Phí vận chuyển
+ *    - Điểm thưởng
+ *    - Tổng cộng
+ * 
+ * 2. Tính toán giá trị:
+ *    - Tính tổng tiền hàng
+ *    - Áp dụng mã giảm giá
+ *    - Tính phí vận chuyển
+ *    - Tích điểm thưởng
+ * 
+ * 3. Hiển thị thông tin:
+ *    - Định dạng tiền tệ
+ *    - Thông tin vận chuyển
+ *    - Chính sách ưu đãi
+ */
+
 import React from "react";
 
+/**
+ * Component CartSummary
+ * @component
+ * @description Hiển thị tổng quan và tính toán giá trị đơn hàng
+ * 
+ * @param {Object} props - Các props truyền vào component
+ * @param {number} props.calculateSubtotal - Tổng tiền tạm tính
+ * @param {number} props.calculateShippingFee - Phí vận chuyển
+ * @param {number} props.calculateTotal - Tổng tiền cuối cùng
+ * @param {number} props.discount - Tỷ lệ giảm giá (0-1)
+ * @param {boolean} props.showShipping - Hiển thị phí vận chuyển
+ * @param {number} props.loyaltyPoints - Điểm thưởng tích lũy
+ * @param {Function} props.formatCurrency - Hàm định dạng tiền tệ
+ * @param {string} props.language - Ngôn ngữ hiện tại
+ * @param {Object} props.translations - Đối tượng chứa các bản dịch
+ */
 const CartSummary = ({
   calculateSubtotal,
   calculateShippingFee,
@@ -11,13 +50,15 @@ const CartSummary = ({
   language,
   translations,
 }) => {
+  // Hiển thị tiêu đề tổng quan đơn hàng
   return (
     <div className="space-y-4">
+      {/* Tiêu đề */}
       <h3 className="text-xl font-semibold text-gray-800 mb-4">
         Tổng quan đơn hàng
       </h3>
 
-      {/* Tạm tính */}
+      {/* Hiển thị tạm tính */}
       <div className="flex justify-between items-center py-2">
         <span className="text-gray-600">Tạm tính</span>
         <span className="font-medium text-gray-800">
@@ -25,7 +66,7 @@ const CartSummary = ({
         </span>
       </div>
 
-      {/* Giảm giá */}
+      {/* Hiển thị giảm giá nếu có */}
       {discount > 0 && (
         <div className="flex justify-between items-center py-2">
           <span className="text-gray-600">Giảm giá</span>
@@ -35,7 +76,7 @@ const CartSummary = ({
         </div>
       )}
 
-      {/* Phí vận chuyển */}
+      {/* Hiển thị phí vận chuyển nếu cần */}
       {showShipping && (
         <div className="flex justify-between items-center py-2">
           <span className="text-gray-600">Phí vận chuyển</span>
@@ -45,7 +86,7 @@ const CartSummary = ({
         </div>
       )}
 
-      {/* Điểm thưởng */}
+      {/* Hiển thị điểm thưởng nếu có */}
       {loyaltyPoints > 0 && (
         <div className="flex justify-between items-center py-2">
           <span className="text-gray-600">Điểm thưởng</span>
@@ -58,7 +99,7 @@ const CartSummary = ({
       {/* Đường kẻ phân cách */}
       <div className="border-t border-gray-200 my-4"></div>
 
-      {/* Tổng cộng */}
+      {/* Hiển thị tổng cộng */}
       <div className="flex justify-between items-center py-2">
         <span className="text-lg font-semibold text-gray-800">Tổng cộng</span>
         <span className="text-lg font-bold text-blue-600">
@@ -66,7 +107,7 @@ const CartSummary = ({
         </span>
       </div>
 
-      {/* Thông tin bổ sung */}
+      {/* Thông tin chính sách vận chuyển và ưu đãi */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
         <div className="flex items-start space-x-3">
           <svg

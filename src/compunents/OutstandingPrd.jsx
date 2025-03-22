@@ -1,13 +1,48 @@
+/**
+ * Component OutstandingPrd
+ * 
+ * Chức năng chính:
+ * 1. Hiển thị sản phẩm nổi bật:
+ *    - Carousel hiển thị nhiều sản phẩm
+ *    - Lazy loading cho hình ảnh
+ *    - Xử lý lỗi tải ảnh
+ * 
+ * 2. Điều hướng thông minh:
+ *    - Chuyển hướng theo loại sản phẩm
+ *    - Xử lý click vào sản phẩm
+ *    - Nút mua ngay
+ * 
+ * 3. Giao diện tương tác:
+ *    - Hiệu ứng hover
+ *    - Animation chuyển động
+ *    - Responsive design
+ */
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // CSS cho carousel
 import { Carousel } from "react-responsive-carousel";
 import { LazyLoadImage } from "react-lazy-load-image-component"; // Lazy loading cho ảnh
 
+/**
+ * Component OutstandingPrd
+ * @component
+ * @description Hiển thị các sản phẩm nổi bật dưới dạng carousel với lazy loading
+ */
 const OutstandingPrd = () => {
+  // Hook điều hướng
   const navigate = useNavigate();
 
-  // Dữ liệu sản phẩm nổi bật
+  /**
+   * Dữ liệu sản phẩm nổi bật
+   * @constant
+   * @type {Array<Object>}
+   * @property {number} id - ID sản phẩm
+   * @property {string} src - URL hình ảnh
+   * @property {string} alt - Mô tả hình ảnh
+   * @property {string} name - Tên sản phẩm
+   * @property {number} price - Giá sản phẩm
+   */
   const products = [
     {
       id: 1,
@@ -39,7 +74,10 @@ const OutstandingPrd = () => {
     },
   ];
 
-  // Xử lý khi click vào sản phẩm
+  /**
+   * Xử lý điều hướng khi click vào sản phẩm
+   * @param {string} productName - Tên sản phẩm được click
+   */
   const handleProductClick = (productName) => {
     switch (productName) {
       case "Men's Sneakers":
@@ -59,7 +97,11 @@ const OutstandingPrd = () => {
     }
   };
 
-  // Hàm xử lý khi ảnh tải thất bại
+  /**
+   * Xử lý khi ảnh tải thất bại
+   * @param {Event} e - Event object
+   * @param {string} src - URL của ảnh gốc
+   */
   const handleImageError = (e, src) => {
     console.error(`Failed to load image: ${src}`);
     // Có thể đặt một ảnh fallback nếu cần
@@ -69,6 +111,7 @@ const OutstandingPrd = () => {
   return (
     <div className="py-6 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="w-full max-w-7xl mx-auto">
+        {/* Carousel hiển thị sản phẩm */}
         <Carousel
           showArrows={true}
           showThumbs={false}
@@ -86,7 +129,9 @@ const OutstandingPrd = () => {
               className="px-2 cursor-pointer"
               onClick={() => handleProductClick(product.name)}
             >
+              {/* Card sản phẩm */}
               <div className="flex flex-col items-center space-y-4 bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                {/* Hình ảnh sản phẩm với lazy loading */}
                 <LazyLoadImage
                   src={product.src}
                   alt={product.alt}
@@ -95,6 +140,7 @@ const OutstandingPrd = () => {
                   onError={(e) => handleImageError(e, product.src)}
                   onLoad={() => console.log(`Loaded image: ${product.src}`)}
                 />
+                {/* Thông tin sản phẩm */}
                 <div className="text-center space-y-2">
                   <h3 className="text-lg font-semibold text-gray-900">
                     {product.name}
@@ -102,6 +148,7 @@ const OutstandingPrd = () => {
                   <p className="text-gray-700 font-medium">
                     ${product.price.toFixed(2)}
                   </p>
+                  {/* Nút mua ngay */}
                   <button
                     className="bg-red-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-red-600 transition duration-200"
                     onClick={(e) => {

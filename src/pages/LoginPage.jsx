@@ -1,27 +1,82 @@
-// LoginPage.jsx
+/**
+ * LoginPage Component
+ * 
+ * Chức năng chính:
+ * 1. Authentication:
+ *    - User login
+ *    - User registration
+ *    - Password reset
+ *    - Form validation
+ * 
+ * 2. State Management:
+ *    - Login/Register toggle
+ *    - Form input handling
+ *    - Loading states
+ *    - Error handling
+ * 
+ * 3. Security Features:
+ *    - Password validation
+ *    - Email validation
+ *    - Local storage management
+ *    - Password visibility toggle
+ * 
+ * 4. User Experience:
+ *    - Toast notifications
+ *    - Loading indicators
+ *    - Responsive design
+ *    - Keyboard navigation
+ */
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+/**
+ * LoginPage Component
+ * @component
+ * @description Handles user authentication, registration, and password reset
+ */
 const LoginPage = () => {
+  // Form State
   const [isLogin, setIsLogin] = useState(true);
   const [isResetPassword, setIsResetPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [email, setEmail] = useState("");
+  
+  // UI State
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Hooks
   const { login } = useCart();
   const navigate = useNavigate();
 
+  /**
+   * Toggles between login and registration forms
+   */
   const toggleForm = () => setIsLogin(!isLogin);
 
+  /**
+   * Validates email format
+   * @param {string} email
+   * @returns {boolean}
+   */
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  /**
+   * Validates password length
+   * @param {string} password
+   * @returns {boolean}
+   */
   const validatePassword = (password) => password.length >= 6;
 
+  /**
+   * Handles user login
+   */
   const handleLogin = async () => {
     setIsLoading(true);
     const result = await login(username, password);
@@ -34,6 +89,9 @@ const LoginPage = () => {
     setIsLoading(false);
   };
 
+  /**
+   * Handles user registration
+   */
   const handleRegister = () => {
     setIsLoading(true);
     if (!username || !email || !password) {
@@ -78,6 +136,9 @@ const LoginPage = () => {
     setIsLoading(false);
   };
 
+  /**
+   * Handles password reset
+   */
   const handleResetPassword = () => {
     setIsLoading(true);
     if (!email) {
@@ -117,6 +178,10 @@ const LoginPage = () => {
     setIsLoading(false);
   };
 
+  /**
+   * Handles key press event
+   * @param {KeyboardEvent} e
+   */
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       if (isResetPassword) handleResetPassword();

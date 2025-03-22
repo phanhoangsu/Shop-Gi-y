@@ -1,30 +1,76 @@
+/**
+ * Banner Component
+ * 
+ * Chức năng chính:
+ * 1. Navigation:
+ *    - Logo with home link
+ *    - Category navigation
+ *    - Cart access
+ *    - User menu
+ * 
+ * 2. Search:
+ *    - Category search
+ *    - Search suggestions
+ *    - Popular searches
+ *    - Search history
+ * 
+ * 3. User Interface:
+ *    - Responsive design
+ *    - Mobile menu
+ *    - Loading states
+ *    - Dropdown menus
+ * 
+ * 4. Authentication:
+ *    - User avatar
+ *    - Login status
+ *    - Logout handling
+ */
+
 import React, { useState, useEffect, useRef } from "react";
 import { FaCartPlus } from "react-icons/fa";
 import { FiSearch, FiMenu, FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
+/**
+ * Banner Component
+ * @component
+ * @description Main navigation banner with search, cart, and user features
+ */
 const Banner = () => {
+  // Navigation and Auth
   const navigate = useNavigate();
   const { cart, user, isLoggedIn, logout } = useCart();
+
+  // UI State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
+
+  // Search State
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef(null);
+  
+  // Cart State
   const cartItems = cart?.length || 0;
 
-  // Thêm danh sách gợi ý phổ biến
+  /**
+   * Popular search suggestions
+   * @constant
+   * @type {Array<{text: string, category: string}>}
+   */
   const popularSearches = [
     { text: "Giày nam", category: "man" },
     { text: "Giày nữ", category: "women" },
     { text: "Giày trẻ em", category: "kids" },
   ];
 
+  /**
+   * Handle clicks outside search dropdown
+   */
   useEffect(() => {
-    // Xử lý click outside để đóng dropdown
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setIsSearchFocused(false);
@@ -35,11 +81,15 @@ const Banner = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /**
+   * Handle search input submission
+   * @param {KeyboardEvent} e - Keyboard event
+   */
   const handleSearch = (e) => {
     if (e.key === "Enter" && searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
 
-      // Chuyển hướng đến trang danh mục tương ứng
+      // Route to appropriate category
       if (term.includes("nam") || term.includes("man")) {
         navigate("/list/man");
       } else if (term.includes("nữ") || term.includes("women")) {
@@ -53,8 +103,11 @@ const Banner = () => {
     }
   };
 
+  /**
+   * Handle popular search item click
+   * @param {{text: string, category: string}} item - Search item
+   */
   const handlePopularSearchClick = (item) => {
-    // Chuyển đến trang danh mục
     if (item.category === "man") {
       navigate("/list/man");
     } else if (item.category === "women") {
@@ -66,17 +119,28 @@ const Banner = () => {
     setSearchTerm("");
   };
 
+  /**
+   * Generate user avatar initials
+   * @param {string} username - User's username
+   * @returns {string} Avatar initials
+   */
   const getAvatar = (username) => {
     if (!username) return "";
     return username.slice(0, 2).toUpperCase();
   };
 
+  /**
+   * Handle user logout
+   */
   const handleLogout = () => {
     logout();
     navigate("/");
     setIsAvatarMenuOpen(false);
   };
 
+  /**
+   * Handle logo click with loading animation
+   */
   const handleLogoClick = () => {
     setIsLoading(true);
     setTimeout(() => {

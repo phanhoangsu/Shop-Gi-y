@@ -1,3 +1,32 @@
+/**
+ * Logic chính và chức năng:
+ * 
+ * 1. Chức năng chính:
+ *    - Hiển thị thông tin sản phẩm
+ *    - Quick view modal
+ *    - Hiển thị rating và reviews
+ *    - Chức năng mua hàng nhanh
+ * 
+ * 2. Logic state và xử lý:
+ *    - showQuickView state quản lý modal
+ *    - Toggle modal visibility
+ *    - Xử lý rating display
+ *    - Format giá (price, oldPrice)
+ * 
+ * 3. UI/UX:
+ *    - Hover effects trên ảnh
+ *    - Modal overlay với animation
+ *    - Responsive grid layout
+ *    - Dark mode support
+ *    - Interactive buttons
+ * 
+ * 4. Features:
+ *    - Ảnh sản phẩm với hover overlay
+ *    - Giá hiện tại và giá cũ
+ *    - Rating stars system
+ *    - Quick view chi tiết
+ *    - Add to cart functionality
+ */
 import React, { useState } from "react";
 import { FiStar, FiX } from "react-icons/fi";
 

@@ -1,19 +1,46 @@
+/**
+ * Logic chính:
+ * 1. Quản lý state:
+ *    - currentPage: Trang hiện tại
+ *    - searchTerm: Từ khóa tìm kiếm
+ *    - statusFilter: Lọc theo trạng thái đơn
+ *    - selectedOrder: Đơn hàng đang xem chi tiết
+ * 
+ * 2. Xử lý dữ liệu:
+ *    - Lọc đơn hàng theo status và searchTerm
+ *    - Phân trang: 10 đơn/trang
+ *    - Format tiền tệ và ngày tháng
+ *    - Style badge theo trạng thái
+ * 
+ * 3. Modal chi tiết:
+ *    - Hiển thị thông tin đơn hàng
+ *    - Danh sách sản phẩm
+ *    - Thông tin thanh toán
+ */
 import React, { useState } from "react";
 import { FaSearch, FaEye } from "react-icons/fa";
 import Pagination from "./Pagination";
 
 const Orders = ({ orders }) => {
+  // State quản lý phân trang và tìm kiếm
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  /**
+   * Format số tiền sang định dạng tiền tệ USD
+   */
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(amount);
 
+  /**
+   * Lấy class CSS cho badge trạng thái đơn hàng
+   * Mỗi trạng thái có màu sắc riêng để dễ phân biệt
+   */
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case "Đang xử lý":
@@ -29,6 +56,7 @@ const Orders = ({ orders }) => {
     }
   };
 
+  // Lọc đơn hàng theo điều kiện tìm kiếm và trạng thái
   const filteredOrders = orders.filter((order) => {
     if (statusFilter !== "all" && order.status !== statusFilter) return false;
     if (searchTerm) {
@@ -41,6 +69,7 @@ const Orders = ({ orders }) => {
     return true;
   });
 
+  // Thiết lập phân trang
   const itemsPerPage = 10;
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const currentOrders = filteredOrders.slice(
@@ -48,6 +77,7 @@ const Orders = ({ orders }) => {
     currentPage * itemsPerPage
   );
 
+  // Xử lý xem chi tiết đơn hàng
   const handleViewOrder = (order) => {
     setSelectedOrder(order);
   };

@@ -1,3 +1,21 @@
+/**
+ * Logic chính:
+ * 1. Meta tags:
+ *    - Basic: title, description
+ *    - Open Graph: og:title, og:description, og:image, og:url
+ *    - Twitter Card: twitter:card, twitter:title, twitter:description, twitter:image
+ * 
+ * 2. Structured Data:
+ *    - Schema.org NewsArticle
+ *    - JSON-LD format
+ *    - Dynamic data injection
+ * 
+ * 3. Best practices:
+ *    - React Helmet
+ *    - Escape special chars
+ *    - ISO date format
+ *    - Required fields validation
+ */
 import React from "react";
 import { Helmet } from "react-helmet";
 

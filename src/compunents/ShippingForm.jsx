@@ -1,5 +1,38 @@
+/**
+ * Component ShippingForm
+ * 
+ * Chức năng chính:
+ * 1. Thu thập thông tin giao hàng:
+ *    - Tên người nhận
+ *    - Địa chỉ giao hàng
+ *    - Số điện thoại liên hệ
+ * 
+ * 2. Phương thức vận chuyển:
+ *    - Giao hàng tiêu chuẩn
+ *    - Giao hàng nhanh
+ *    - Thời gian dự kiến
+ * 
+ * 3. Xác thực dữ liệu:
+ *    - Kiểm tra các trường bắt buộc
+ *    - Định dạng số điện thoại
+ *    - Xác thực địa chỉ
+ */
+
 import React from "react";
 
+/**
+ * Component ShippingForm
+ * @component
+ * @description Form nhập thông tin giao hàng và lựa chọn phương thức vận chuyển
+ * 
+ * @param {Object} props - Các props truyền vào component
+ * @param {Object} props.shippingInfo - Thông tin giao hàng hiện tại
+ * @param {Function} props.handleShippingInfoChange - Hàm xử lý thay đổi thông tin
+ * @param {string} props.shippingMethod - Phương thức vận chuyển được chọn
+ * @param {Function} props.setShippingMethod - Hàm cập nhật phương thức vận chuyển
+ * @param {string} props.language - Ngôn ngữ hiện tại
+ * @param {Object} props.translations - Đối tượng chứa các bản dịch
+ */
 const ShippingForm = ({
   shippingInfo,
   handleShippingInfoChange,
@@ -10,9 +43,12 @@ const ShippingForm = ({
 }) => {
   return (
     <>
+      {/* Tiêu đề form */}
       <h3 className="text-lg font-semibold mb-2">
         {translations[language].shippingInfo}
       </h3>
+
+      {/* Form nhập tên người nhận */}
       <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2">
           {translations[language].name}
@@ -25,6 +61,8 @@ const ShippingForm = ({
           onChange={handleShippingInfoChange}
         />
       </div>
+
+      {/* Form nhập địa chỉ giao hàng */}
       <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2">
           {translations[language].address}
@@ -37,6 +75,8 @@ const ShippingForm = ({
           onChange={handleShippingInfoChange}
         />
       </div>
+
+      {/* Form nhập số điện thoại */}
       <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2">
           {translations[language].phone}
@@ -49,6 +89,8 @@ const ShippingForm = ({
           onChange={handleShippingInfoChange}
         />
       </div>
+
+      {/* Lựa chọn phương thức vận chuyển */}
       <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2">
           {translations[language].shippingMethod}

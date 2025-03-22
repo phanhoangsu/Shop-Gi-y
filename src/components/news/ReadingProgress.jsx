@@ -1,3 +1,20 @@
+/**
+ * Logic chính:
+ * 1. Quản lý state:
+ *    - progress: Phần trăm đã đọc (0-100)
+ * 
+ * 2. Xử lý scroll:
+ *    - Tính toán progress:
+ *      scrolled = window.scrollY
+ *      height = scrollHeight - innerHeight
+ *      progress = (scrolled / height) * 100
+ *    - Cleanup event listener
+ * 
+ * 3. UI/UX:
+ *    - Fixed position
+ *    - Smooth transition
+ *    - Z-index priority
+ */
 import React, { useState, useEffect } from "react";
 
 const ReadingProgress = () => {

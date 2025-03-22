@@ -1,3 +1,34 @@
+/**
+ * Logic chính:
+ * 1. Quản lý state:
+ *    - Form data: thông tin sản phẩm
+ *    - Image state:
+ *      + Preview images
+ *      + Upload method
+ *      + Drag & drop
+ *      + Camera stream
+ *      + Upload progress
+ *    - Validation state:
+ *      + Form errors
+ *      + Image validation
+ * 
+ * 2. Xử lý hình ảnh:
+ *    - Upload nhiều file (max 5)
+ *    - Preview images
+ *    - Validate size và format
+ *    - Hỗ trợ:
+ *      + Kéo thả
+ *      + Paste từ clipboard
+ *      + Chụp từ camera
+ *      + Upload từ URL
+ * 
+ * 3. Form validation:
+ *    - Required fields
+ *    - Price > 0
+ *    - Stock >= 0
+ *    - Ít nhất 1 color và 1 size
+ *    - Cleanup resources (camera)
+ */
 import React, { useEffect, useRef, useState } from "react";
 import {
   FaBox,
@@ -18,6 +49,7 @@ import {
   FaUpload,
 } from "react-icons/fa";
 
+// Số lượng ảnh tối đa cho mỗi sản phẩm
 const MAX_IMAGES = 5;
 
 const ProductForm = ({
@@ -29,17 +61,24 @@ const ProductForm = ({
   loading,
   availableSizes,
 }) => {
+  // State quản lý hình ảnh và preview
   const [previewImages, setPreviewImages] = useState(formData.images || []);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [uploadMethod, setUploadMethod] = useState("url");
-  const fileInputRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [imageError, setImageError] = useState({});
+  const [draggedImage, setDraggedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  // State quản lý camera
   const [cameraStream, setCameraStream] = useState(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  // State quản lý upload
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -47,14 +86,20 @@ const ProductForm = ({
     size: true,
     format: true,
   });
-  const [draggedImage, setDraggedImage] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [error, setError] = useState(""); // Thêm state để lưu thông báo lỗi
+  
+  // State quản lý lỗi
+  const [error, setError] = useState("");
 
+  /**
+   * Cập nhật preview khi formData thay đổi
+   */
   useEffect(() => {
     setPreviewImages(formData.images || []);
   }, [formData.images]);
 
+  /**
+   * Cleanup camera stream khi unmount
+   */
   useEffect(() => {
     return () => {
       if (cameraStream) {
@@ -63,6 +108,10 @@ const ProductForm = ({
     };
   }, [cameraStream]);
 
+  /**
+   * Validate form trước khi submit
+   * Kiểm tra các trường bắt buộc và định dạng
+   */
   const validateForm = () => {
     if (!formData.name) return "Vui lòng nhập tên sản phẩm!";
     if (!formData.price || isNaN(formData.price) || Number(formData.price) <= 0)
@@ -78,6 +127,10 @@ const ProductForm = ({
     return null;
   };
 
+  /**
+   * Xử lý thay đổi hình ảnh
+   * Thêm hình ảnh mới vào formData
+   */
   const handleImageChange = (e) => {
     const value = e.target.value;
     if (value) {
@@ -90,6 +143,10 @@ const ProductForm = ({
     e.target.value = "";
   };
 
+  /**
+   * Xử lý upload file
+   * Tải lên nhiều file và thêm vào formData
+   */
   const handleFileUpload = (files) => {
     if (!files || files.length === 0) return;
 
@@ -119,6 +176,9 @@ const ProductForm = ({
     });
   };
 
+  /**
+   * Xóa hình ảnh khỏi formData
+   */
   const removeImage = (index) => {
     const updatedImages = formData.images.filter((_, i) => i !== index);
     handleInputChange({ target: { name: "images", value: updatedImages } });
@@ -132,6 +192,9 @@ const ProductForm = ({
     });
   };
 
+  /**
+   * Xử lý kéo thả hình ảnh
+   */
   useEffect(() => {
     const handlePaste = (e) => {
       const items = e.clipboardData?.items;
@@ -149,6 +212,9 @@ const ProductForm = ({
     return () => document.removeEventListener("paste", handlePaste);
   }, []);
 
+  /**
+   * Xử lý kéo thả hình ảnh
+   */
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -159,6 +225,9 @@ const ProductForm = ({
     }
   };
 
+  /**
+   * Xử lý thả hình ảnh
+   */
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -168,6 +237,9 @@ const ProductForm = ({
     }
   };
 
+  /**
+   * Khởi động camera
+   */
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -186,6 +258,9 @@ const ProductForm = ({
     }
   };
 
+  /**
+   * Dừng camera
+   */
   const stopCamera = () => {
     if (cameraStream) {
       cameraStream.getTracks().forEach((track) => track.stop());
@@ -194,6 +269,9 @@ const ProductForm = ({
     }
   };
 
+  /**
+   * Chụp ảnh từ camera
+   */
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
@@ -210,8 +288,14 @@ const ProductForm = ({
     }
   };
 
+  /**
+   * Xử lý kéo thả hình ảnh
+   */
   const handleDragStart = (e, index) => setDraggedImage(index);
 
+  /**
+   * Xử lý thả hình ảnh
+   */
   const handleDragOver = (e, index) => {
     e.preventDefault();
     if (draggedImage === null) return;
@@ -224,8 +308,14 @@ const ProductForm = ({
     setDraggedImage(index);
   };
 
+  /**
+   * Xử lý kết thúc kéo thả hình ảnh
+   */
   const handleDragEnd = () => setDraggedImage(null);
 
+  /**
+   * Xử lý submit form
+   */
   const handleFormSubmit = (action) => {
     const validationError = validateForm();
     if (validationError) {

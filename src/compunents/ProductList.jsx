@@ -1,12 +1,42 @@
+/**
+ * Component ProductList
+ * 
+ * Chức năng chính:
+ * 1. Hiển thị sản phẩm nổi bật:
+ *    - Carousel hình ảnh sản phẩm
+ *    - Hiệu ứng chuyển động
+ *    - Tự động chuyển ảnh
+ * 
+ * 2. Điều hướng:
+ *    - Nút Shop Now
+ *    - Liên kết đến danh mục
+ *    - Xử lý chuyển trang
+ * 
+ * 3. Giao diện:
+ *    - Responsive design
+ *    - Animation hiệu ứng
+ *    - Tương tác người dùng
+ */
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // CSS cho carousel
 import { Carousel } from "react-responsive-carousel";
 
+/**
+ * Component ProductList
+ * @component
+ * @description Hiển thị danh sách sản phẩm nổi bật với carousel và điều hướng
+ */
 const ProductList = () => {
+  // Hook điều hướng
   const navigate = useNavigate();
 
-  // Dữ liệu hình ảnh
+  /**
+   * Dữ liệu hình ảnh sản phẩm
+   * @constant
+   * @type {Array<string>}
+   */
   const images = [
     "https://res.cloudinary.com/dbpqjnu0o/image/upload/v1741696031/o1cn01pejv7i1tcvg2rz2al1891072_xjfbmb.webp",
     "https://res.cloudinary.com/dbpqjnu0o/image/upload/v1742124073/vn-11134207-7r98o-lxs5fpvuqn6j07_noyerj.jpg",
@@ -16,17 +46,21 @@ const ProductList = () => {
   return (
     <div className="bg-white px-6 py-12">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-10">
-        {/* Left Content */}
+        {/* Phần nội dung bên trái */}
         <div className="md:w-1/2 space-y-6">
+          {/* Tiêu đề sản phẩm */}
           <h1 className="text-5xl lg:text-7xl font-extrabold animate-fade-in">
             Nike <span className="text-gray-300">Air</span>
             <br /> Max
           </h1>
+
+          {/* Mô tả sản phẩm */}
           <p className="text-gray-600 text-lg">
             It is a long established fact that a reader will be distracted by
             the readable content of a page when looking at its layout.
           </p>
-          {/* Nút "Shop Now" */}
+
+          {/* Nút điều hướng đến trang sản phẩm */}
           <button
             onClick={() => navigate("/list/man")}
             className="bg-red-500 text-white px-8 py-3 rounded-full text-xl shadow-lg hover:bg-red-600 transition-transform transform hover:scale-105"
@@ -35,9 +69,10 @@ const ProductList = () => {
           </button>
         </div>
 
-        {/* Right Content - Carousel */}
+        {/* Phần carousel bên phải */}
         <div className="md:w-1/2 flex justify-center">
           <div className="w-full max-w-lg">
+            {/* Carousel hiển thị hình ảnh */}
             <Carousel
               showArrows={true}
               showThumbs={true}
@@ -60,7 +95,7 @@ const ProductList = () => {
         </div>
       </div>
 
-      {/* Tailwind Animation */}
+      {/* CSS Animation */}
       <style jsx>{`
         @keyframes fadeIn {
           from {

@@ -1,6 +1,16 @@
+/**
+ * Component quản lý tin tức
+ * Chức năng:
+ * - Thêm/sửa/xóa tin tức
+ * - Upload hình ảnh thumbnail
+ * - Quản lý tags
+ * - Xem danh sách tin tức
+ * - Xóa nhiều tin tức cùng lúc
+ */
 import React, { useState, useEffect } from "react";
 
 function NewsForm() {
+  // State quản lý form tin tức
   const [formData, setFormData] = useState({
     title: "",
     thumbnail: "",
@@ -8,16 +18,22 @@ function NewsForm() {
     body: "",
     tags: [],
   });
+
+  // State quản lý danh sách và trạng thái
   const [newsList, setNewsList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentAction, setCurrentAction] = useState("add"); // 'add' hoặc 'edit'
   const [selectedItems, setSelectedItems] = useState([]);
 
-  // Fetch danh sách tin tức
+  // Fetch danh sách tin tức khi component mount
   useEffect(() => {
     fetchNews();
   }, []);
 
+  /**
+   * Fetch danh sách tin tức từ API
+   * Xử lý các trường hợp response khác nhau
+   */
   const fetchNews = async () => {
     setIsLoading(true);
     try {
@@ -39,7 +55,10 @@ function NewsForm() {
     }
   };
 
-  // Xử lý input thông thường
+  /**
+   * Xử lý thay đổi input form
+   * Cập nhật state formData
+   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -48,7 +67,11 @@ function NewsForm() {
     }));
   };
 
-  // Xử lý tags
+  /**
+   * Xử lý thay đổi tags
+   * Chuyển đổi chuỗi tags thành mảng
+   * Loại bỏ khoảng trắng và tags rỗng
+   */
   const handleTagsChange = (e) => {
     const value = e.target.value;
     const tagsArray = value
@@ -62,7 +85,12 @@ function NewsForm() {
     }));
   };
 
-  // Thêm hàm xử lý nội dung
+  /**
+   * Format nội dung bài viết
+   * - Thay thế \n bằng xuống dòng thật
+   * - Gộp nhiều dòng trống
+   * - Xóa khoảng trắng thừa
+   */
   const formatContent = (content) => {
     if (!content) return "";
     return content

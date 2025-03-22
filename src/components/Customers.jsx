@@ -1,20 +1,46 @@
+/**
+ * Logic chính:
+ * 1. Quản lý state:
+ *    - currentPage: Trang hiện tại
+ *    - searchTerm: Từ khóa tìm kiếm
+ *    - statusFilter: Lọc theo trạng thái
+ *    - editCustomer: Khách hàng đang chỉnh sửa
+ * 
+ * 2. Xử lý dữ liệu:
+ *    - Lọc khách hàng theo status và searchTerm
+ *    - Phân trang: 10 items/trang
+ *    - Format tiền tệ sang USD
+ * 
+ * 3. CRUD Operations:
+ *    - Create: Thêm khách hàng mới
+ *    - Read: Hiển thị và tìm kiếm
+ *    - Update: Chỉnh sửa thông tin
+ *    - Delete: Xóa khách hàng
+ */
 import React, { useState } from "react";
 import { FaSearch, FaUserEdit, FaTrash } from "react-icons/fa";
 import Pagination from "./Pagination";
 
 const Customers = ({ customers }) => {
+  // State quản lý phân trang và tìm kiếm
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [editCustomer, setEditCustomer] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  /**
+   * Format số tiền sang định dạng tiền tệ USD
+   */
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(amount);
 
+  /**
+   * Lấy class CSS cho badge trạng thái
+   */
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case "active":
@@ -26,6 +52,11 @@ const Customers = ({ customers }) => {
     }
   };
 
+  /**
+   * Lọc danh sách khách hàng theo:
+   * - Trạng thái đã chọn
+   * - Từ khóa tìm kiếm (tên, email, phone)
+   */
   const filteredCustomers = customers.filter((customer) => {
     if (statusFilter !== "all" && customer.status !== statusFilter)
       return false;
@@ -40,6 +71,7 @@ const Customers = ({ customers }) => {
     return true;
   });
 
+  // Cấu hình phân trang
   const itemsPerPage = 10;
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   const currentCustomers = filteredCustomers.slice(
@@ -47,11 +79,18 @@ const Customers = ({ customers }) => {
     currentPage * itemsPerPage
   );
 
+  /**
+   * Mở modal chỉnh sửa khách hàng
+   */
   const handleEditCustomer = (customer) => {
     setEditCustomer({ ...customer });
     setIsModalOpen(true);
   };
 
+  /**
+   * Lưu thông tin khách hàng đã chỉnh sửa
+   * Cập nhật vào localStorage
+   */
   const handleSaveCustomer = () => {
     const updatedAdminData = JSON.parse(localStorage.getItem("adminData"));
     updatedAdminData.customers = updatedAdminData.customers.map((c) =>
@@ -66,6 +105,10 @@ const Customers = ({ customers }) => {
     setEditCustomer(null);
   };
 
+  /**
+   * Xóa khách hàng
+   * Cập nhật vào localStorage sau khi xác nhận
+   */
   const handleDeleteCustomer = (customer) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa khách hàng này?")) {
       const updatedAdminData = JSON.parse(localStorage.getItem("adminData"));

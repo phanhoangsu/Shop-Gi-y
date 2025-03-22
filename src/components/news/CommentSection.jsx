@@ -1,11 +1,37 @@
+/**
+ * Logic chính:
+ * 1. Quản lý state:
+ *    - newComment: Nội dung bình luận mới
+ *    - replyingTo: ID comment đang trả lời
+ *    - replyText: Nội dung trả lời
+ * 
+ * 2. Xử lý form:
+ *    - Submit comment mới:
+ *      + Validate input
+ *      + Reset form sau khi submit
+ *    - Submit reply:
+ *      + Validate input
+ *      + Reset form và trạng thái reply
+ * 
+ * 3. Hiển thị UI:
+ *    - Danh sách comments
+ *    - Nested replies
+ *    - Form input động
+ *    - Loading states
+ *    - Empty states
+ */
 import React, { useState } from "react";
 import { FiHeart } from "react-icons/fi";
 
 const CommentSection = ({ comments = [], onAddComment, onAddReply }) => {
+  // State quản lý bình luận và trả lời
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState("");
 
+  /**
+   * Xử lý submit bình luận mới
+   */
   const handleSubmitComment = (e) => {
     e.preventDefault();
     if (newComment.trim()) {
@@ -14,6 +40,9 @@ const CommentSection = ({ comments = [], onAddComment, onAddReply }) => {
     }
   };
 
+  /**
+   * Xử lý submit trả lời cho bình luận
+   */
   const handleSubmitReply = (commentId) => {
     if (replyText.trim()) {
       onAddReply(commentId, replyText);

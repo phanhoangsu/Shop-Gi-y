@@ -1,3 +1,23 @@
+/**
+ * Logic chính và chức năng:
+ * 
+ * 1. Chức năng:
+ *    - Thanh điều hướng nhanh các danh mục tin tức
+ *    - Filter tin tức theo tag
+ *    - Tối ưu UX với horizontal scroll
+ * 
+ * 2. Logic xử lý:
+ *    - Định nghĩa links array với id/label/tag
+ *    - Map links thành buttons
+ *    - Callback onCategoryClick với tag
+ * 
+ * 3. UI/UX:
+ *    - Horizontal scrolling
+ *    - Hide scrollbar
+ *    - Hover effects
+ *    - Responsive buttons
+ *    - Dark mode support
+ */
 import React from "react";
 
 const QuickLinks = ({ onCategoryClick }) => {

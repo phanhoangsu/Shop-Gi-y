@@ -1,3 +1,31 @@
+/**
+ * NewsDetail Component
+ * 
+ * Chức năng chính:
+ * - Hiển thị chi tiết tin tức
+ * - Quản lý tương tác người dùng
+ * - Xử lý comments và reactions
+ * 
+ * Logic chính:
+ * 1. State Management:
+ *    - Comments handling
+ *    - Hearts/Likes tracking
+ *    - Bookmarks management
+ *    - Share functionality
+ * 
+ * 2. Data Processing:
+ *    - Related news filtering
+ *    - Reading time calculation
+ *    - Date formatting
+ *    - Safe HTML rendering
+ * 
+ * 3. User Interactions:
+ *    - Back navigation
+ *    - Social sharing
+ *    - Comments system
+ *    - Like/Bookmark actions
+ */
+
 import React, { useEffect, useState } from "react";
 import {
   FiArrowLeft,
@@ -11,6 +39,23 @@ import {
 } from "react-icons/fi";
 import { OptimizedImage, CommentSection } from "./index";
 
+/**
+ * NewsDetail Component
+ * @param {Object} props
+ * @param {Object} props.news - Current news item
+ * @param {Function} props.onBack - Back navigation handler
+ * @param {Object} props.comments - Comments data
+ * @param {Function} props.setComments - Comments setter
+ * @param {Object} props.hearts - Hearts/Likes data
+ * @param {Function} props.setHearts - Hearts setter
+ * @param {Array} props.bookmarks - Bookmarked items
+ * @param {Function} props.setBookmarks - Bookmarks setter
+ * @param {Function} props.handleShare - Share handler
+ * @param {Function} props.handleBookmark - Bookmark handler
+ * @param {Function} props.handleHeart - Heart/Like handler
+ * @param {Function} props.handleComment - Comment handler
+ * @param {Array} props.newsData - All news data
+ */
 const NewsDetail = ({
   news,
   onBack,
@@ -26,13 +71,30 @@ const NewsDetail = ({
   handleComment,
   newsData,
 }) => {
+  /**
+   * Comment State
+   * @type {string}
+   */
   const [newComment, setNewComment] = useState("");
+
+  /**
+   * Filter Related News
+   * - Same category
+   * - Exclude current news
+   * - Limit to 3 items
+   */
   const relatedNews = newsData
     .filter((n) => n.category === news.category && n.id !== news.id)
     .slice(0, 3);
 
+  /**
+   * Calculate Reading Time
+   * @param {number} wordCount - Number of words
+   * @returns {number} - Reading time in minutes
+   */
   const getReadingTime = (wordCount) => Math.ceil(wordCount / 200);
 
+  // Debug logging
   useEffect(() => {
     console.log("NewsDetail mounted:", news);
     console.log("Comments for this news:", comments[news.id]);
@@ -40,6 +102,7 @@ const NewsDetail = ({
 
   return (
     <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+      {/* Hero Image Section */}
       <div className="relative h-96">
         <OptimizedImage
           src={news.image}
@@ -56,6 +119,7 @@ const NewsDetail = ({
       </div>
 
       <div className="p-8">
+        {/* Tags Section */}
         <div className="flex flex-wrap gap-2 mb-4">
           {news.tags?.map((tag) => (
             <span
@@ -67,6 +131,7 @@ const NewsDetail = ({
           ))}
         </div>
 
+        {/* Title & Meta Info */}
         <h1 className="text-3xl font-bold mb-4 dark:text-white">
           {news.title}
         </h1>
@@ -82,6 +147,7 @@ const NewsDetail = ({
           </div>
         </div>
 
+        {/* Content Section */}
         <div className="prose dark:prose-invert max-w-none mb-8">
           <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
             {news.description || "Không có mô tả"}
@@ -96,7 +162,9 @@ const NewsDetail = ({
           )}
         </div>
 
+        {/* Actions Bar */}
         <div className="flex items-center justify-between border-t border-b border-gray-200 dark:border-gray-700 py-4 mb-8">
+          {/* Like & Bookmark Buttons */}
           <div className="flex items-center gap-4">
             <button
               onClick={(e) => {
@@ -129,6 +197,8 @@ const NewsDetail = ({
               <span>{bookmarks.includes(news.id) ? "Đã lưu" : "Lưu tin"}</span>
             </button>
           </div>
+
+          {/* Share Buttons */}
           <div className="flex items-center gap-2">
             <button
               onClick={(e) => {
@@ -160,6 +230,7 @@ const NewsDetail = ({
           </div>
         </div>
 
+        {/* Comments Section */}
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-4 dark:text-white">
             Bình luận ({(comments[news.id] || []).length})
@@ -218,7 +289,9 @@ const NewsDetail = ({
                 <div
                   key={item.id}
                   className="flex gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                  onClick={() => setSelectedNews(item)}
+                  onClick={() => {
+                    // Chưa implement setSelectedNews
+                  }}
                 >
                   <OptimizedImage
                     src={item.image}

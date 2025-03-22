@@ -1,3 +1,26 @@
+/**
+ * KidsPage Component
+ * 
+ * Chức năng chính:
+ * - Hiển thị và quản lý trang sản phẩm trẻ em
+ * - Filter và sắp xếp sản phẩm
+ * - Xử lý giỏ hàng
+ * 
+ * Logic chính:
+ * 1. State Management:
+ *    - productsData: Dữ liệu sản phẩm
+ *    - filters: Size, color, price range
+ *    - cart: Giỏ hàng
+ *    - UI states: view mode, sort
+ * 
+ * 2. Features:
+ *    - Product filtering
+ *    - Add to cart
+ *    - Quick view
+ *    - Size guide
+ *    - Wishlist
+ */
+
 import React, { useEffect, useState } from "react";
 import {
   FaSearch,
