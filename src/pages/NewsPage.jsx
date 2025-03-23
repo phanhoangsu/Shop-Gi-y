@@ -1,30 +1,30 @@
 /**
  * NewsPage Component
- * 
+ *
  * Chức năng chính:
- * 1. Content Management:
- *    - News display and organization
- *    - Category management
- *    - Content filtering
- *    - Search functionality
- * 
- * 2. User Interaction:
- *    - Bookmarking
- *    - Comments
- *    - Reactions
- *    - Sharing
- * 
- * 3. UI/UX Features:
- *    - Dark mode
- *    - Reading progress
- *    - Responsive design
- *    - Loading states
- * 
- * 4. Data Management:
- *    - API integration
- *    - Local storage
- *    - Error handling
- *    - State management
+ * 1. Quản lý nội dung:
+ * - Hiển thị và sắp xếp tin tức
+ * - Quản lý danh mục
+ * - Lọc nội dung
+ * - Chức năng tìm kiếm
+ *
+ * 2. Tương tác của người dùng:
+ * - Đánh dấu trang
+ * - Bình luận
+ * - Phản ứng
+ * - Chia sẻ
+ *
+ * 3. Tính năng UI/UX:
+ * - Chế độ tối
+ * - Tiến trình đọc
+ * - Thiết kế đáp ứng
+ * - Trạng thái tải
+ *
+ * 4. Quản lý dữ liệu:
+ * - Tích hợp API
+ * - Lưu trữ cục bộ
+ * - Xử lý lỗi
+ * - Quản lý trạng thái
  */
 
 import axios from "axios";
@@ -191,19 +191,19 @@ const getErrorMessage = (error) => {
 
 /**
  * NewsPage Component
- * 
+ *
  * Props: None
- * 
+ *
  * Logic chính:
  * 1. Data management:
  *    - Fetch và cache tin tức
  *    - Update state theo user actions
- * 
+ *
  * 2. User interactions:
  *    - Handle search/filter
  *    - Handle pagination
  *    - Handle bookmarks/hearts
- * 
+ *
  * 3. UI/UX:
  *    - Responsive layout
  *    - Loading states

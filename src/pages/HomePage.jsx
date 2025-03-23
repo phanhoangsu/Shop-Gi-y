@@ -1,29 +1,29 @@
 /**
  * HomePage Component
- * 
+ *
  * Chức năng chính:
- * 1. Landing Page:
- *    - First impression
- *    - Brand showcase
- *    - Value proposition
- * 
- * 2. Marketing:
- *    - Feature highlights
- *    - Product showcase
- *    - Trust signals
- *    - Call-to-actions
- * 
- * 3. User Experience:
- *    - Clear navigation
- *    - Visual hierarchy
- *    - Responsive design
- *    - Performance optimization
- * 
- * 4. Conversion:
- *    - Featured products
- *    - Special offers
- *    - Social proof
- *    - Easy checkout
+ * 1. Trang đích:
+ * - Ấn tượng đầu tiên
+ * - Trưng bày thương hiệu
+ * - Đề xuất giá trị
+ *
+ * 2. Tiếp thị:
+ * - Điểm nổi bật của tính năng
+ * - Trưng bày sản phẩm
+ * - Tín hiệu tin cậy
+ * - Kêu gọi hành động
+ *
+ * 3. Trải nghiệm người dùng:
+ * - Điều hướng rõ ràng
+ * - Phân cấp trực quan
+ * - Thiết kế đáp ứng
+ * - Tối ưu hóa hiệu suất
+ *
+ * 4. Chuyển đổi:
+ * - Sản phẩm nổi bật
+ * - Ưu đãi đặc biệt
+ * - Bằng chứng xã hội
+ * - Thanh toán dễ dàng
  */
 
 import React from "react";

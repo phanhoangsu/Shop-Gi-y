@@ -1,30 +1,30 @@
 /**
  * LoginPage Component
- * 
+ *
  * Chức năng chính:
- * 1. Authentication:
- *    - User login
- *    - User registration
- *    - Password reset
- *    - Form validation
- * 
- * 2. State Management:
- *    - Login/Register toggle
- *    - Form input handling
- *    - Loading states
- *    - Error handling
- * 
- * 3. Security Features:
- *    - Password validation
- *    - Email validation
- *    - Local storage management
- *    - Password visibility toggle
- * 
- * 4. User Experience:
- *    - Toast notifications
- *    - Loading indicators
- *    - Responsive design
- *    - Keyboard navigation
+ * 1. Xác thực:
+ * - Đăng nhập người dùng
+ * - Đăng ký người dùng
+ * - Đặt lại mật khẩu
+ * - Xác thực biểu mẫu
+ *
+ * 2. Quản lý trạng thái:
+ * - Chuyển đổi Đăng nhập/Đăng ký
+ * - Xử lý đầu vào biểu mẫu
+ * - Trạng thái tải
+ * - Xử lý lỗi
+ *
+ * 3. Tính năng bảo mật:
+ * - Xác thực mật khẩu
+ * - Xác thực email
+ * - Quản lý lưu trữ cục bộ
+ * - Chuyển đổi hiển thị mật khẩu
+ *
+ * 4. Trải nghiệm người dùng:
+ * - Thông báo Toast
+ * - Chỉ báo tải
+ * - Thiết kế phản hồi
+ * - Điều hướng bàn phím
  */
 
 import React, { useState } from "react";
@@ -46,11 +46,11 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [email, setEmail] = useState("");
-  
+
   // UI State
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Hooks
   const { login } = useCart();
   const navigate = useNavigate();

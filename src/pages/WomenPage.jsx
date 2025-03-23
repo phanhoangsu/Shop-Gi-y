@@ -1,30 +1,30 @@
 /**
  * WomenPage Component
- * 
+ *
  * Chức năng chính:
- * 1. Product Management:
- *    - Display women's shoes
- *    - Filter functionality
- *    - Sort options
- *    - Search capability
- * 
- * 2. Shopping Features:
- *    - Add to cart
- *    - Wishlist management
- *    - Quick view product
- *    - Stock tracking
- * 
- * 3. User Experience:
- *    - Responsive design
- *    - Loading states
- *    - Error handling
- *    - Pagination
- * 
- * 4. Product Details:
- *    - Color selection
- *    - Size selection
- *    - Quantity control
- *    - Price filtering
+ * 1. Quản lý sản phẩm:
+ * - Hiển thị giày nữ
+ * - Chức năng lọc
+ * - Tùy chọn sắp xếp
+ * - Khả năng tìm kiếm
+ *
+ * 2. Tính năng mua sắm:
+ * - Thêm vào giỏ hàng
+ * - Quản lý danh sách mong muốn
+ * - Xem nhanh sản phẩm
+ * - Theo dõi kho
+ *
+ * 3. Trải nghiệm người dùng:
+ * - Thiết kế đáp ứng
+ * - Trạng thái tải
+ * - Xử lý lỗi
+ * - Phân trang
+ *
+ * 4. Chi tiết sản phẩm:
+ * - Lựa chọn màu sắc
+ * - Lựa chọn kích thước
+ * - Kiểm soát số lượng
+ * - Lọc giá
  */
 
 import React, { useEffect, useState } from "react";

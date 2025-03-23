@@ -1,15 +1,15 @@
 /**
  * ListPage Component
- * 
+ *
  * Chức năng chính:
- * - Container component cho các route con
- * - Render Outlet từ React Router
- * - Cung cấp layout chung
- * 
+ *- Thành phần vùng chứa cho các tuyến đường
+ * - Kết xuất đầu ra từ Bộ định tuyến React
+ * - Cung cấp bố cục chung
+ *
  * Logic chính:
- * - Sử dụng Outlet để render nested routes
- * - Không có state management
- * - Minimal wrapper component
+ * - Sử dụng Outlet để hiển thị các tuyến đường lồng nhau
+ * - Không có quản lý nhà nước
+ * - Thành phần bao bọc tối thiểu
  */
 
 import React from "react";
