@@ -73,6 +73,14 @@ const Admin = () => {
   const { request, loading, error } = useApi();
   const navigate = useNavigate();
 
+  // Product selection state
+  const [selectedProducts, setSelectedProducts] = useState([]);
+
+  // Product selection handler
+  const selectProducts = (products) => {
+    setSelectedProducts(products);
+  };
+
   // Product management state
   const [products, setProducts] = useState([]); // Danh sách sản phẩm
   const [notification, setNotification] = useState(null); // System notifications

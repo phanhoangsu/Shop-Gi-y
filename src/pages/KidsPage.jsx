@@ -151,7 +151,7 @@ const KidsPage = () => {
     setTimeout(() => {
       setCartNotification(false);
       navigate("/cart");
-    }, 2000);
+    }, 1000);
     closePopup();
   };
 

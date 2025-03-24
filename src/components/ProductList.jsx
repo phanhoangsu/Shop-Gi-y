@@ -54,7 +54,7 @@ import {
  * @param {Function} props.handleEdit - Xử lý sửa sản phẩm
  * @param {Function} props.handleDelete - Xử lý xóa sản phẩm
  * @param {Array} props.selectedProducts - Sản phẩm đã chọn
- * @param {Function} props.setSelectedProducts - Set sản phẩm đã chọn
+ * @param {Function} props.onSelectProducts - Set sản phẩm đã chọn
  * @param {string} props.searchTerm - Từ khóa tìm kiếm
  * @param {Function} props.setSearchTerm - Set từ khóa tìm kiếm
  * @param {Object} props.filters - Bộ lọc
@@ -67,7 +67,7 @@ const ProductList = ({
   handleEdit,
   handleDelete,
   selectedProducts,
-  setSelectedProducts,
+  onSelectProducts,
   searchTerm,
   setSearchTerm,
   filters,
@@ -167,6 +167,22 @@ const ProductList = ({
     );
   };
 
+  // Xử lý chọn sản phẩm
+  const handleSelectProduct = (productId) => {
+    const newSelection = selectedProducts.includes(productId)
+      ? selectedProducts.filter(id => id !== productId)
+      : [...selectedProducts, productId];
+    onSelectProducts(newSelection);
+  };
+
+  // Xử lý chọn tất cả sản phẩm
+  const handleSelectAll = () => {
+    const allProductIds = searchedProducts.map(product => product._id);
+    onSelectProducts(
+      selectedProducts.length === allProductIds.length ? [] : allProductIds
+    );
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="p-4 border-b border-gray-200">
@@ -230,18 +246,14 @@ const ProductList = ({
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left">
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.length === products.length}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedProducts(products.map((p) => p._id));
-                    } else {
-                      setSelectedProducts([]);
-                    }
-                  }}
-                  className="rounded border-gray-300"
-                />
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.length === searchedProducts.length}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                </div>
               </th>
               <th className="px-4 py-3 text-left">Sản phẩm</th>
               <th className="px-4 py-3 text-left">Danh mục</th>
@@ -253,20 +265,12 @@ const ProductList = ({
           <tbody className="divide-y divide-gray-200">
             {searchedProducts.map((product) => (
               <tr key={product._id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">
+                <td className="px-4 py-2">
                   <input
                     type="checkbox"
                     checked={selectedProducts.includes(product._id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedProducts([...selectedProducts, product._id]);
-                      } else {
-                        setSelectedProducts(
-                          selectedProducts.filter((id) => id !== product._id)
-                        );
-                      }
-                    }}
-                    className="rounded border-gray-300"
+                    onChange={() => handleSelectProduct(product._id)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
                 </td>
                 <td className="px-4 py-3">

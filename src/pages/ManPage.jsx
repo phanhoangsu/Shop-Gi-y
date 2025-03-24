@@ -52,7 +52,7 @@ const ManPage = () => {
       setProducts(fetchedProducts);
       setFilteredProducts(fetchedProducts);
       setRefreshNotification(true);
-      setTimeout(() => setRefreshNotification(false), 2000);
+      setTimeout(() => setRefreshNotification(false), 22000);
     } catch (err) {
       console.error("Error fetching products:", err);
     } finally {
@@ -161,7 +161,7 @@ const ManPage = () => {
     setTimeout(() => {
       setCartNotification(false);
       navigate("/cart");
-    }, 2000);
+    }, 1000);
     closePopup();
   };
 
